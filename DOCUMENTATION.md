@@ -383,15 +383,16 @@ enum PostPlatformStatus {
 #### YouTube
 - Creer un projet Google Cloud Console
 - Activer YouTube Data API v3
-- Configurer OAuth 2.0 (scopes: `https://www.googleapis.com/auth/youtube.upload`)
-- Redirect URI: `{APP_URL}/api/platforms/youtube/callback`
+- Configurer OAuth 2.0 (scopes: `https://www.googleapis.com/auth/youtube.upload`, `https://www.googleapis.com/auth/youtube.readonly`)
+- Redirect URI: `{APP_URL}/api/auth/callback/google`
+- La carte compte affiche la chaine YouTube recuperee via `channels.list?mine=true`
 - Limite: 10 000 credits/jour (upload = 1600 credits)
 
 #### Instagram
 - Compte Meta Developer
-- App Facebook avec produit "Instagram Graph API"
-- Compte Instagram professionnel ou createur lie a une page Facebook
-- Scopes: `instagram_content_publish`, `instagram_manage_insights`
+- Produit "Instagram API with Instagram Login"
+- Compte Instagram professionnel ou createur
+- Scopes: `instagram_business_basic`, `instagram_business_content_publish`
 - Redirect URI: `{APP_URL}/api/platforms/instagram/callback`
 - Note: Les tokens durent 60 jours (refresh automatique via worker)
 
@@ -419,6 +420,10 @@ enum PostPlatformStatus {
 # App
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=
+
+# Email (magic link) — en dev, le lien apparait dans les logs du serveur
+EMAIL_SERVER=
+EMAIL_FROM=noreply@localhost
 
 # Database
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pala_scheduler
@@ -458,6 +463,7 @@ TWITTER_CLIENT_SECRET=
 - Node.js 20+
 - Docker Desktop
 - pnpm 9+
+- cloudflared (pour tester les OAuth qui exigent HTTPS)
 
 ### Installation
 
@@ -485,8 +491,35 @@ pnpm db:seed
 # 7. Demarrer le serveur de dev
 pnpm dev
 
-# 8. Demarrer le worker (terminal separe)
+# 8. Demarrer le tunnel HTTPS (terminal separe, si OAuth social)
+pnpm run dev:tunnel
+
+# 9. Demarrer le worker (terminal separe)
 pnpm worker:dev
+```
+
+### Tunnel HTTPS OAuth
+
+Les providers Instagram, TikTok et X exigent des URLs de callback HTTPS. En dev, le projet utilise un tunnel Cloudflare vers le serveur local.
+
+```bash
+pnpm dev
+pnpm run dev:tunnel
+```
+
+Avec le tunnel configure, ouvrir l'application via :
+
+```txt
+https://dev-scheduler.palawi.fr
+```
+
+Callbacks a configurer dans les dashboards OAuth :
+
+```txt
+https://dev-scheduler.palawi.fr/api/auth/callback/google
+https://dev-scheduler.palawi.fr/api/platforms/instagram/callback
+https://dev-scheduler.palawi.fr/api/platforms/tiktok/callback
+https://dev-scheduler.palawi.fr/api/platforms/twitter/callback
 ```
 
 ### Scripts disponibles
@@ -494,16 +527,17 @@ pnpm worker:dev
 ```json
 {
   "dev": "next dev --turbopack",
+  "dev:tunnel": "cloudflared tunnel run pala-s-scheduler-dev",
   "build": "next build",
   "start": "next start",
-  "worker:dev": "tsx watch src/workers/index.ts",
-  "worker:start": "node dist/workers/index.js",
-  "db:migrate": "prisma migrate dev",
+  "worker:dev": "tsx watch --env-file .env.local src/workers/index.ts",
+  "worker:start": "node --env-file=.env.local dist/workers/index.js",
+  "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
   "db:migrate:prod": "prisma migrate deploy",
-  "db:generate": "prisma generate",
-  "db:studio": "prisma studio",
-  "db:seed": "tsx prisma/seed.ts",
-  "lint": "eslint src --ext .ts,.tsx",
+  "db:generate": "dotenv -e .env.local -- prisma generate",
+  "db:studio": "dotenv -e .env.local -- prisma studio",
+  "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
+  "lint": "eslint src",
   "type-check": "tsc --noEmit"
 }
 ```

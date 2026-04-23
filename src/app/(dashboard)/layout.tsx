@@ -1,7 +1,12 @@
+import { redirect } from 'next/navigation'
 import { Header } from '@/components/layout/header'
 import { Sidebar } from '@/components/layout/sidebar'
+import { getCurrentUser } from '@/lib/auth'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser()
+  if (!user) redirect('/login')
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
