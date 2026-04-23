@@ -5,6 +5,7 @@ import Google from 'next-auth/providers/google'
 import Nodemailer from 'next-auth/providers/nodemailer'
 import { authConfig } from './auth-config'
 import { db } from './db'
+import { getYoutubeChannel } from './platforms/youtube'
 
 const emailServer = process.env.EMAIL_SERVER || 'smtp://localhost:1025'
 
@@ -32,15 +33,23 @@ async function saveYoutubeConnectedPlatform({
   username?: string | null
   avatar?: string | null
 }): Promise<void> {
+  const channel = await getYoutubeChannel(accessToken).catch((err) => {
+    console.error('[auth] failed to fetch youtube channel:', err)
+    return null
+  })
+  const platformUserId = channel?.id ?? providerAccountId
+  const platformUsername = channel?.title ?? username ?? null
+  const platformAvatar = channel?.avatar ?? avatar ?? null
+
   await db.connectedPlatform.upsert({
     where: { userId_platform: { userId, platform: 'YOUTUBE' } },
     update: {
       accessToken,
       refreshToken: refreshToken ?? null,
       tokenExpiry: expiresAt ? new Date(expiresAt * 1000) : null,
-      platformUserId: providerAccountId,
-      platformUsername: username ?? null,
-      platformAvatar: avatar ?? null,
+      platformUserId,
+      platformUsername,
+      platformAvatar,
       isActive: true,
     },
     create: {
@@ -49,9 +58,9 @@ async function saveYoutubeConnectedPlatform({
       accessToken,
       refreshToken: refreshToken ?? null,
       tokenExpiry: expiresAt ? new Date(expiresAt * 1000) : null,
-      platformUserId: providerAccountId,
-      platformUsername: username ?? null,
-      platformAvatar: avatar ?? null,
+      platformUserId,
+      platformUsername,
+      platformAvatar,
     },
   })
 }
