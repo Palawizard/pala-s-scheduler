@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { toast } from 'sonner'
 import { PlatformConnectionCard } from '@/components/platforms/platform-connection-card'
 import { PLATFORMS } from '@/types'
@@ -17,6 +18,7 @@ const AUTH_URL_MAP: Record<Platform, string> = {
 }
 
 const SUCCESS_MESSAGES: Record<string, string> = {
+  youtube: 'YouTube connecte avec succes',
   instagram: 'Instagram connecte avec succes',
   tiktok: 'TikTok connecte avec succes',
   twitter: 'X connecte avec succes',
@@ -50,7 +52,7 @@ function PlatformsSettingsContent() {
 
   const handleConnect = useCallback(async (platform: Platform) => {
     if (platform === 'YOUTUBE') {
-      router.push('/api/auth/signin/google')
+      await signIn('google', { callbackUrl: '/settings/platforms?success=youtube' })
       return
     }
 
