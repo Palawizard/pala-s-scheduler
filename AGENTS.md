@@ -241,9 +241,10 @@ export async function POST(request: NextRequest) {
 ## 7. Prisma
 
 - Toujours generer le client apres une modification du schema : `pnpm db:generate`.
-- Toujours creer une migration nommee : `pnpm db:migrate --name description-courte`.
+- Pour creer une migration : `pnpm db:migrate` (interactif, Prisma demande un nom) ou passer le nom directement : `DATABASE_URL=... pnpm exec prisma migrate dev --name description-courte`.
 - Ne jamais modifier manuellement les fichiers dans `prisma/migrations/`.
 - Le schema de reference est dans `DOCUMENTATION.md`.
+- Les scripts `db:*` utilisent `dotenv-cli` pour charger `.env.local` — Prisma ne le lit pas nativement. Si un script echoue avec "Environment variable not found", verifier que `.env.local` existe et que `dotenv-cli` est installe.
 
 ---
 

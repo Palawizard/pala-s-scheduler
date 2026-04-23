@@ -4,161 +4,80 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 1 : Foundation
+## Progression
 
-**Branche :** `feat/foundation`  
+| Epic | Statut | Branche | Depend de |
+|---|---|---|---|
+| 1 - Foundation | TERMINE | `feat/foundation` | - |
+| 2 - Auth | A FAIRE | `feat/auth` | 1 |
+| 3 - Calendar | A FAIRE | `feat/calendar` | 2 |
+| 4 - Integrations | A FAIRE | `feat/integrations` | 2 |
+| 5 - Scheduler | A FAIRE | `feat/scheduler` | 3, 4 |
+| 6 - Analytics | A FAIRE | `feat/analytics` | 4, 5 |
+| 7 - Polish | A FAIRE | `feat/polish` | 6 |
+
+---
+
+## Epic 1 : Foundation — TERMINE
+
+**Branche :** `feat/foundation` (merge sur `dev` le 23/04/2026)
 **Objectif :** Mettre en place le squelette du projet avec toutes les configurations de base.
 
 ### Sous-etapes
 
-**1.1 - Initialisation Next.js**
-- Creer le projet Next.js 15 avec TypeScript, Tailwind CSS, App Router, pnpm
-- Configurer `tsconfig.json` avec `strict: true` et alias `@/`
-- Configurer ESLint + Prettier avec les regles du projet
-- Configurer `.gitignore`, `.env.example`
-- **Commit :** `chore(config): init next.js project with typescript and tailwind`
+- [x] **1.1** Init Next.js 15 + TypeScript + Tailwind v4 + ESLint + Prettier + shadcn/ui
+  - `chore(config): init next.js project with typescript and tailwind`
+- [x] **1.2** Docker Compose (PostgreSQL 16 + Redis 7)
+  - `chore(config): add docker-compose with postgres and redis`
+- [x] **1.3** Prisma schema complet + migration `init` + `src/lib/db.ts`
+  - `chore(db): setup prisma with full schema and initial migration`
+- [x] **1.4** BullMQ queue (`src/lib/queue.ts`) + worker skeleton (`src/workers/index.ts`)
+  - `chore(worker): setup bullmq queue and worker skeleton`
+- [x] **1.5** Cloudflare R2 helpers (`src/lib/storage.ts`)
+  - `chore(upload): setup cloudflare r2 client and storage helpers`
+- [x] **1.6** Layout dashboard + sidebar + header + pages vides + composants shadcn/ui
+  - `feat(layout): add dashboard layout with sidebar and base shadcn components`
+- [x] **1.7** Types globaux + constantes + utils
+  - `chore(config): add global types, constants, and utility functions`
+- [x] Fix ESLint (`@eslint/eslintrc` manquant)
+  - `fix(config): add missing eslint eslintrc package`
+- [x] Fix Prisma scripts (ajout `dotenv-cli` pour charger `.env.local`) + migration appliquee
+  - `fix(db): add dotenv-cli to prisma scripts and apply initial migration`
 
-**1.2 - Docker Compose**
-- Ecrire `docker-compose.yml` avec services PostgreSQL 16 et Redis 7
-- Tester le demarrage des conteneurs
-- **Commit :** `chore(config): add docker-compose with postgres and redis`
+### Notes post-implementation
 
-**1.3 - Prisma Setup**
-- Installer Prisma + prisma-client
-- Configurer `prisma/schema.prisma` avec le schema complet (User, Account, Session, ConnectedPlatform, Post, PostPlatform, PostAnalytics, enums)
-- Creer la premiere migration : `init`
-- Creer `src/lib/db.ts` (singleton Prisma)
-- Ajouter les scripts `db:migrate`, `db:generate`, `db:studio` dans `package.json`
-- **Commit :** `chore(db): setup prisma with full schema and initial migration`
-
-**1.4 - Redis + BullMQ Setup**
-- Installer `ioredis` + `bullmq`
-- Creer `src/lib/queue.ts` avec l'instance Redis et la definition de la queue `post-scheduler`
-- Creer le squelette du worker `src/workers/index.ts` (connection seule, pas encore de logique)
-- Ajouter le script `worker:dev` dans `package.json`
-- **Commit :** `chore(worker): setup bullmq queue and worker skeleton`
-
-**1.5 - Cloudflare R2 Setup**
-- Installer `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`
-- Creer `src/lib/storage.ts` avec helpers : `uploadFile`, `deleteFile`, `getPublicUrl`
-- **Commit :** `chore(upload): setup cloudflare r2 client and storage helpers`
-
-**1.6 - Layout de Base**
-- Creer le layout dashboard `src/app/(dashboard)/layout.tsx` avec sidebar et header (vides mais structures)
-- Creer les pages vides pour : `/calendar`, `/posts`, `/analytics`, `/settings`
-- Creer `src/components/layout/sidebar.tsx` avec navigation principale (liens seulement)
-- Creer `src/components/layout/header.tsx` (structure seule)
-- Installer shadcn/ui et ajouter les composants de base : Button, Input, Card, Badge, Dialog, Popover, Select, Separator, Skeleton, Toast, Tooltip
-- **Commit :** `feat(layout): add dashboard layout with sidebar and base shadcn components`
-
-**1.7 - Types Globaux**
-- Creer `src/types/index.ts` avec les types partages (reprend les enums Prisma cote client)
-- Creer `src/types/api.ts` avec les types de reponses API
-- Creer `src/lib/constants.ts` (PLATFORM_LABELS, PLATFORM_COLORS, PLATFORM_ICONS)
-- Creer `src/lib/utils.ts` (cn helper, formatDate, formatNumber, truncate)
-- **Commit :** `chore(config): add global types, constants, and utility functions`
+- Les scripts `db:*` utilisent `dotenv -e .env.local --` pour charger les variables (Prisma ne lit pas `.env.local` nativement).
+- `pnpm db:migrate` est interactif : Prisma demande un nom de migration. Passer `--name <nom>` directement : `DATABASE_URL=... pnpm exec prisma migrate dev --name <nom>`.
+- shadcn installe automatiquement les dependances Radix UI manquantes dans `package.json`.
 
 ---
 
-### Plan de Test - Epic 1
+## Epic 2 : Authentification & Comptes Connectes — A FAIRE
 
-```markdown
-## Plan de Test - Epic 1 : Foundation
-
-### Prerequis
-- [ ] Docker Desktop lance
-- [ ] pnpm installe (v9+)
-- [ ] Node.js 20+ installe
-
-### Scenarios
-
-#### Demarrage de l'environnement
-1. `docker-compose up -d` -> les conteneurs postgres et redis demarrent sans erreur
-2. `pnpm install` -> pas d'erreur
-3. `pnpm db:migrate` -> migration appliquee avec succes
-4. `pnpm dev` -> le serveur demarre sur http://localhost:3000
-5. http://localhost:3000 -> redirige ou affiche le layout dashboard avec sidebar
-
-#### Verification Prisma
-1. `pnpm db:studio` -> Prisma Studio s'ouvre et affiche toutes les tables
-
-#### Verification worker
-1. `pnpm worker:dev` dans un second terminal -> le worker demarre sans erreur (message de connexion)
-
-#### Verification TypeScript
-1. `pnpm type-check` -> aucune erreur TypeScript
-2. `pnpm lint` -> aucune erreur lint
-
-### Points de vigilance
-- La DATABASE_URL dans .env.local doit pointer sur le bon port Docker (5432)
-- Le sidebar doit etre visible sans JS (SSR)
-```
-
----
-
-## Epic 2 : Authentification & Comptes Connectes
-
-**Branche :** `feat/auth`  
-**Depend de :** Epic 1 merge sur `dev`  
+**Branche :** `feat/auth`
+**Depend de :** Epic 1 (merge sur `dev`)
 **Objectif :** Login utilisateur + connexion des comptes sociaux (OAuth multi-provider).
 
 ### Sous-etapes
 
-**2.1 - Auth.js Configuration**
-- Installer `next-auth@beta` (v5)
-- Creer `src/lib/auth.ts` avec la config de base (adapter Prisma, session strategy JWT)
-- Creer `src/app/api/auth/[...nextauth]/route.ts`
-- Configurer le provider Email/Magic Link (pour login sans reseaux sociaux)
-- Creer la page de login `src/app/(auth)/login/page.tsx`
-- **Commit :** `feat(auth): setup auth.js v5 with prisma adapter and email provider`
-
-**2.2 - Protection des Routes**
-- Creer `middleware.ts` a la racine pour proteger `/(dashboard)/*`
-- Ajouter la redirection vers `/login` si non authentifie
-- **Commit :** `feat(auth): add route protection middleware`
-
-**2.3 - Provider Google (YouTube)**
-- Ajouter le provider Google dans `src/lib/auth.ts` (scopes YouTube inclus)
-- Mettre a jour `.env.example` avec `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- **Commit :** `feat(auth): add google oauth provider for youtube`
-
-**2.4 - Gestion des Comptes Connectes : API**
-- Creer la route `GET /api/platforms` : liste les `ConnectedPlatform` de l'utilisateur
-- Creer la route `DELETE /api/platforms/[platform]` : deconnecte un compte
-- Creer `src/lib/platforms/index.ts` avec la factory `getPlatformClient(platform)`
-- **Commit :** `feat(platforms): add connected platforms api routes`
-
-**2.5 - OAuth Instagram**
-- Creer `src/lib/platforms/instagram.ts` avec les helpers OAuth Meta (auth URL, exchange code, refresh token)
-- Creer la route `GET /api/platforms/instagram/auth-url`
-- Creer la route `GET /api/platforms/instagram/callback`
-- Stocker `ConnectedPlatform` en base apres callback
-- **Commit :** `feat(instagram): add oauth flow and token storage`
-
-**2.6 - OAuth TikTok**
-- Creer `src/lib/platforms/tiktok.ts` avec helpers OAuth TikTok
-- Creer les routes `auth-url` et `callback` pour TikTok
-- **Commit :** `feat(tiktok): add oauth flow and token storage`
-
-**2.7 - OAuth X (Twitter)**
-- Creer `src/lib/platforms/twitter.ts` avec helpers OAuth 2.0 PKCE
-- Creer les routes `auth-url` et `callback` pour X
-- Stocker le `code_verifier` en session temporaire le temps du flow PKCE
-- **Commit :** `feat(twitter): add oauth 2.0 pkce flow and token storage`
-
-**2.8 - Page Parametres : Comptes Connectes**
-- Creer `src/app/(dashboard)/settings/platforms/page.tsx`
-- Afficher les 4 plateformes avec statut connecte/deconnecte
-- Bouton "Connecter" / "Deconnecter" par plateforme
-- Afficher l'avatar et le nom d'utilisateur de la plateforme si connecte
-- Creer le composant `src/components/platforms/platform-connection-card.tsx`
-- **Commit :** `feat(settings): add connected platforms management page`
-
-**2.9 - Header Utilisateur**
-- Ajouter dans `header.tsx` : avatar utilisateur + menu deroulant (Parametres, Deconnexion)
-- **Commit :** `feat(layout): add user menu to header`
-
----
+- [ ] **2.1** Auth.js v5 + adapter Prisma + provider Email/Magic Link + page login
+  - `feat(auth): setup auth.js v5 with prisma adapter and email provider`
+- [ ] **2.2** Middleware de protection des routes (`/(dashboard)/*`)
+  - `feat(auth): add route protection middleware`
+- [ ] **2.3** Provider Google OAuth (scopes YouTube)
+  - `feat(auth): add google oauth provider for youtube`
+- [ ] **2.4** API `GET /api/platforms` + `DELETE /api/platforms/[platform]` + factory `getPlatformClient`
+  - `feat(platforms): add connected platforms api routes`
+- [ ] **2.5** OAuth Instagram (Meta Graph API) : auth-url + callback + stockage token
+  - `feat(instagram): add oauth flow and token storage`
+- [ ] **2.6** OAuth TikTok : auth-url + callback + stockage token
+  - `feat(tiktok): add oauth flow and token storage`
+- [ ] **2.7** OAuth X (Twitter) : OAuth 2.0 PKCE + auth-url + callback + stockage token
+  - `feat(twitter): add oauth 2.0 pkce flow and token storage`
+- [ ] **2.8** Page `/settings/platforms` : cartes de connexion par plateforme
+  - `feat(settings): add connected platforms management page`
+- [ ] **2.9** Menu utilisateur dans le header (avatar + deconnexion)
+  - `feat(layout): add user menu to header`
 
 ### Plan de Test - Epic 2
 
@@ -202,70 +121,30 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 3 : Calendrier & Gestion des Posts
+## Epic 3 : Calendrier & Gestion des Posts — A FAIRE
 
-**Branche :** `feat/calendar`  
-**Depend de :** Epic 2 merge sur `dev`  
+**Branche :** `feat/calendar`
+**Depend de :** Epic 2 (merge sur `dev`)
 **Objectif :** Calendrier interactif + creation/modification/suppression de posts.
 
 ### Sous-etapes
 
-**3.1 - API Posts CRUD**
-- Creer les routes `GET /api/posts`, `POST /api/posts`
-- Creer les routes `GET /api/posts/[id]`, `PATCH /api/posts/[id]`, `DELETE /api/posts/[id]`
-- Valider les bodys avec Zod
-- **Commit :** `feat(posts): add post crud api routes with zod validation`
-
-**3.2 - API Upload Media**
-- Creer la route `POST /api/upload` : upload un fichier vers R2, retourne l'URL publique
-- Valider le type (image/video) et la taille max (500 Mo)
-- Creer la route `DELETE /api/upload` : supprimer un fichier de R2 par URL
-- **Commit :** `feat(upload): add media upload and delete api routes`
-
-**3.3 - TanStack Query Setup**
-- Installer `@tanstack/react-query`
-- Creer `src/app/providers.tsx` avec `QueryClientProvider`
-- Creer les hooks : `usePosts`, `usePost`, `useCreatePost`, `useUpdatePost`, `useDeletePost`
-- **Commit :** `feat(posts): add react query hooks for post management`
-
-**3.4 - Calendrier Principal**
-- Installer FullCalendar (`@fullcalendar/react`, `@fullcalendar/daygrid`, `@fullcalendar/timegrid`, `@fullcalendar/interaction`)
-- Creer `src/components/calendar/scheduler-calendar.tsx`
-- Afficher les posts schedules comme evenements colores par plateforme
-- Vue par defaut : mois. Switcher mois/semaine/jour
-- Drag-and-drop pour reprogrammer un post (PATCH scheduledAt)
-- **Commit :** `feat(calendar): add interactive fullcalendar with post events`
-
-**3.5 - Formulaire de Creation de Post**
-- Creer `src/components/posts/post-form.tsx` avec React Hook Form + Zod
-- Champs : titre, caption, hashtags, plateformes selectionnees, date/heure de publication
-- Creer `src/components/posts/platform-selector.tsx` (affiche les plateformes connectees seulement)
-- Modale de creation accessible depuis le bouton "Nouveau post" et depuis le clic sur le calendrier
-- **Commit :** `feat(posts): add post creation form with platform selector`
-
-**3.6 - Upload de Medias dans le Formulaire**
-- Creer `src/components/posts/media-uploader.tsx`
-- Zone de drag-and-drop ou click pour uploader des fichiers
-- Preview des images/videos uploadees
-- Suppression d'un media avec nettoyage R2
-- **Commit :** `feat(posts): add media uploader with r2 integration`
-
-**3.7 - Evenement Post sur le Calendrier**
-- Creer `src/components/calendar/post-event.tsx` : rendu d'un post sur le calendrier
-- Afficher icone(s) de plateforme, titre, heure
-- Couleur par statut (planifie = bleu, publie = vert, echec = rouge)
-- Clic sur un evenement -> ouvrir modale de detail/edition
-- **Commit :** `feat(calendar): add post event component with status colors`
-
-**3.8 - Page Liste des Posts**
-- Creer `src/app/(dashboard)/posts/page.tsx`
-- Tableau ou liste des posts avec filtres : statut, plateforme, periode
-- Creer `src/components/posts/post-card.tsx`
-- Creer `src/components/posts/post-status-badge.tsx`
-- Actions par post : editer, publier maintenant, supprimer
-- **Commit :** `feat(posts): add posts list page with filters and actions`
-
----
+- [ ] **3.1** API CRUD posts (`GET`, `POST`, `PATCH`, `DELETE`) avec validation Zod
+  - `feat(posts): add post crud api routes with zod validation`
+- [ ] **3.2** API upload media vers R2 + suppression
+  - `feat(upload): add media upload and delete api routes`
+- [ ] **3.3** TanStack Query setup + hooks posts (`usePosts`, `useCreatePost`, etc.)
+  - `feat(posts): add react query hooks for post management`
+- [ ] **3.4** Calendrier FullCalendar interactif (drag-and-drop, vues mois/semaine/jour)
+  - `feat(calendar): add interactive fullcalendar with post events`
+- [ ] **3.5** Formulaire de creation de post (React Hook Form + Zod + modale)
+  - `feat(posts): add post creation form with platform selector`
+- [ ] **3.6** Upload de medias dans le formulaire (drag-and-drop + preview + R2)
+  - `feat(posts): add media uploader with r2 integration`
+- [ ] **3.7** Composant evenement post sur le calendrier (icones + couleurs par statut)
+  - `feat(calendar): add post event component with status colors`
+- [ ] **3.8** Page `/posts` : liste avec filtres + actions (editer, publier, supprimer)
+  - `feat(posts): add posts list page with filters and actions`
 
 ### Plan de Test - Epic 3
 
@@ -305,7 +184,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 #### Page /posts
 1. /posts -> liste des posts visibles
-2. Filtre par statut "Planifie" -> seuls les posts schedules affliches
+2. Filtre par statut "Planifie" -> seuls les posts schedules affiches
 3. Bouton "Supprimer" -> post retire de la liste et du calendrier
 
 ### Points de vigilance
@@ -315,54 +194,28 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 4 : Integrations de Publication
+## Epic 4 : Integrations de Publication — A FAIRE
 
-**Branche :** `feat/integrations`  
-**Depend de :** Epic 2 merge sur `dev`  
+**Branche :** `feat/integrations`
+**Depend de :** Epic 2 (merge sur `dev`)
 **Objectif :** Implementer la publication reelle vers chaque plateforme sociale.
 
 ### Sous-etapes
 
-**4.1 - Interface Plateforme (contrat commun)**
-- Definir dans `src/lib/platforms/index.ts` l'interface `PlatformPublisher` avec la methode `publish(post, connectedPlatform): Promise<{ platformPostId: string }>`
-- Definir les types `PublishPayload` et `PublishResult`
-- **Commit :** `feat(platforms): define platform publisher interface and types`
-
-**4.2 - Publication YouTube**
-- Installer `googleapis`
-- Implementer `src/lib/platforms/youtube.ts` : upload de video via YouTube Data API v3
-- Gerer le `resumable upload` pour les grosses videos
-- Gerer le refresh de token Google si expire
-- **Commit :** `feat(youtube): implement video upload via youtube data api v3`
-
-**4.3 - Publication Instagram**
-- Implementer `src/lib/platforms/instagram.ts` : creer un container media puis publier via Instagram Graph API
-- Gerer photos et videos (flow different pour chaque type)
-- Gerer le refresh du token Meta (tokens 60 jours)
-- **Commit :** `feat(instagram): implement content publishing via instagram graph api`
-
-**4.4 - Publication TikTok**
-- Implementer `src/lib/platforms/tiktok.ts` : upload video via TikTok Content Posting API
-- Gerer le statut asynchrone (polling du statut d'upload TikTok)
-- **Commit :** `feat(tiktok): implement video upload via tiktok content posting api`
-
-**4.5 - Publication X (Twitter)**
-- Implementer `src/lib/platforms/twitter.ts` : poster un tweet avec media via X API v2
-- Upload du media en premier (chunked si video), puis creer le tweet avec `media_ids`
-- Gerer le refresh token OAuth 2.0
-- **Commit :** `feat(twitter): implement tweet and media posting via x api v2`
-
-**4.6 - Route Publier Maintenant**
-- Creer `POST /api/posts/[id]/publish` : publie immediatement sur toutes les plateformes selectionnees
-- Mettre a jour le statut `Post` et `PostPlatform` en temps reel
-- Retourner les erreurs par plateforme (publication partielle possible)
-- **Commit :** `feat(posts): add immediate publish route with per-platform status`
-
-**4.7 - Route Annuler**
-- Creer `POST /api/posts/[id]/cancel` : passe le post a `CANCELLED`, retire le job BullMQ si present
-- **Commit :** `feat(posts): add post cancellation route`
-
----
+- [ ] **4.1** Interface `PlatformPublisher` + types `PublishPayload` et `PublishResult`
+  - `feat(platforms): define platform publisher interface and types`
+- [ ] **4.2** Publication YouTube (resumable upload + refresh token)
+  - `feat(youtube): implement video upload via youtube data api v3`
+- [ ] **4.3** Publication Instagram (container media + refresh token 60j)
+  - `feat(instagram): implement content publishing via instagram graph api`
+- [ ] **4.4** Publication TikTok (polling statut upload asynchrone)
+  - `feat(tiktok): implement video upload via tiktok content posting api`
+- [ ] **4.5** Publication X/Twitter (chunked media + tweet + refresh token)
+  - `feat(twitter): implement tweet and media posting via x api v2`
+- [ ] **4.6** Route `POST /api/posts/[id]/publish` (publication immediate multi-plateforme)
+  - `feat(posts): add immediate publish route with per-platform status`
+- [ ] **4.7** Route `POST /api/posts/[id]/cancel`
+  - `feat(posts): add post cancellation route`
 
 ### Plan de Test - Epic 4
 
@@ -409,42 +262,24 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 5 : Moteur de Planification (Worker)
+## Epic 5 : Moteur de Planification (Worker) — A FAIRE
 
-**Branche :** `feat/scheduler`  
-**Depend de :** Epic 3 + Epic 4 merges sur `dev`  
+**Branche :** `feat/scheduler`
+**Depend de :** Epic 3 + Epic 4 (merges sur `dev`)
 **Objectif :** Publier automatiquement les posts a l'heure planifiee.
 
 ### Sous-etapes
 
-**5.1 - Worker BullMQ : Logique de Publication**
-- Implementer `src/workers/post-scheduler.worker.ts` : consumer BullMQ qui appelle `getPlatformClient(platform).publish(...)`
-- Mettre a jour les statuts en base (`PUBLISHING` -> `PUBLISHED` ou `FAILED`)
-- Loguer les erreurs par plateforme
-- **Commit :** `feat(worker): implement bullmq consumer for scheduled post publishing`
-
-**5.2 - Enqueue au Moment de la Planification**
-- Modifier `POST /api/posts` et `PATCH /api/posts/[id]` : si `scheduledAt` est defini et futur, ajouter un job BullMQ avec delay
-- Stocker le `jobId` dans `Post.jobId`
-- **Commit :** `feat(worker): enqueue bullmq job on post creation and update`
-
-**5.3 - Annulation et Reprogrammation**
-- `POST /api/posts/[id]/cancel` : retirer le job BullMQ via `jobId`
-- `PATCH /api/posts/[id]` avec nouvelle `scheduledAt` : supprimer l'ancien job, creer un nouveau
-- **Commit :** `feat(worker): handle job cancellation and rescheduling`
-
-**5.4 - Retry et Resilience**
-- Configurer BullMQ avec 3 tentatives max, backoff exponentiel
-- Apres 3 echecs : statut `FAILED`, stocker le message d'erreur dans `PostPlatform.errorMessage`
-- Notification UI : afficher les posts en echec dans un badge sur la sidebar
-- **Commit :** `feat(worker): add retry logic and failure notification`
-
-**5.5 - Token Refresh dans le Worker**
-- Avant chaque publication, verifier si le token expire dans moins d'1 heure
-- Si oui : rafraichir via la logique de chaque plateforme avant de publier
-- **Commit :** `feat(worker): add proactive token refresh before publishing`
-
----
+- [ ] **5.1** Worker BullMQ : consumer qui appelle `getPlatformClient(platform).publish(...)`
+  - `feat(worker): implement bullmq consumer for scheduled post publishing`
+- [ ] **5.2** Enqueue job BullMQ a la creation/modification d'un post schedule
+  - `feat(worker): enqueue bullmq job on post creation and update`
+- [ ] **5.3** Annulation et reprogrammation des jobs
+  - `feat(worker): handle job cancellation and rescheduling`
+- [ ] **5.4** Retry (3 tentatives, backoff exponentiel) + badge echec dans la sidebar
+  - `feat(worker): add retry logic and failure notification`
+- [ ] **5.5** Refresh proactif des tokens avant publication
+  - `feat(worker): add proactive token refresh before publishing`
 
 ### Plan de Test - Epic 5
 
@@ -487,51 +322,28 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 6 : Tableau de Bord Analytique
+## Epic 6 : Tableau de Bord Analytique — A FAIRE
 
-**Branche :** `feat/analytics`  
-**Depend de :** Epic 4 + Epic 5 merges sur `dev`  
+**Branche :** `feat/analytics`
+**Depend de :** Epic 4 + Epic 5 (merges sur `dev`)
 **Objectif :** Afficher les statistiques de performance des publications par plateforme.
 
 ### Sous-etapes
 
-**6.1 - Synchro des Stats depuis les APIs**
-- Creer `src/lib/platforms/analytics.ts` : fonctions `fetchYoutubeStats`, `fetchInstagramStats`, `fetchTiktokStats`, `fetchTwitterStats`
-- Creer la route `POST /api/analytics/sync` : synchro manuelle des stats pour tous les posts publies
-- Stocker les stats dans `PostAnalytics`
-- **Commit :** `feat(analytics): add per-platform stats fetching and sync route`
-
-**6.2 - Synchro Automatique**
-- Ajouter un job BullMQ recurrent (cron) dans le worker : synchro des stats toutes les 6 heures
-- **Commit :** `feat(worker): add recurring analytics sync job`
-
-**6.3 - API Analytics**
-- Creer `GET /api/analytics` : stats agregees sur une periode (vues, likes, partages, reach total)
-- Creer `GET /api/analytics/[platform]` : stats detaillees par plateforme
-- Parametres : `from`, `to` (dates ISO), `platform`
-- **Commit :** `feat(analytics): add aggregated and per-platform analytics routes`
-
-**6.4 - Vue d'ensemble (Stats Globales)**
-- Creer `src/components/analytics/stats-overview.tsx` : cartes KPI (vues totales, taux d'engagement, posts publies, reach)
-- Ajouter sur la page `/analytics`
-- **Commit :** `feat(analytics): add global kpi cards to analytics page`
-
-**6.5 - Graphique d'Engagement**
-- Creer `src/components/analytics/engagement-chart.tsx` : graphique lineaire vues/likes/partages par jour
-- Filtre de periode : 7j, 30j, 90j
-- **Commit :** `feat(analytics): add engagement over time line chart`
-
-**6.6 - Stats par Plateforme**
-- Creer `src/components/analytics/platform-stats-card.tsx` : carte par plateforme avec stats cles
-- Afficher une comparaison visuelle entre plateformes (bar chart)
-- **Commit :** `feat(analytics): add per-platform stats cards and comparison chart`
-
-**6.7 - Tableau de Performance des Posts**
-- Creer `src/components/analytics/posts-performance-table.tsx` : tableau trié par vues/likes
-- Colonnes : titre, plateforme, date, vues, likes, commentaires, taux d'engagement
-- **Commit :** `feat(analytics): add posts performance table with sorting`
-
----
+- [ ] **6.1** Fonctions de fetch stats par plateforme + route `POST /api/analytics/sync`
+  - `feat(analytics): add per-platform stats fetching and sync route`
+- [ ] **6.2** Job BullMQ recurrent : synchro des stats toutes les 6 heures
+  - `feat(worker): add recurring analytics sync job`
+- [ ] **6.3** Routes `GET /api/analytics` et `GET /api/analytics/[platform]`
+  - `feat(analytics): add aggregated and per-platform analytics routes`
+- [ ] **6.4** Cartes KPI globales (vues, engagement, reach, posts publies)
+  - `feat(analytics): add global kpi cards to analytics page`
+- [ ] **6.5** Graphique d'engagement dans le temps (Recharts, filtres 7j/30j/90j)
+  - `feat(analytics): add engagement over time line chart`
+- [ ] **6.6** Cartes stats par plateforme + bar chart comparatif
+  - `feat(analytics): add per-platform stats cards and comparison chart`
+- [ ] **6.7** Tableau de performance des posts (tri par vues/likes)
+  - `feat(analytics): add posts performance table with sorting`
 
 ### Plan de Test - Epic 6
 
@@ -572,54 +384,30 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 7 : Polish & Production Readiness
+## Epic 7 : Polish & Production Readiness — A FAIRE
 
-**Branche :** `feat/polish`  
-**Depend de :** Epic 6 merge sur `dev`  
+**Branche :** `feat/polish`
+**Depend de :** Epic 6 (merge sur `dev`)
 **Objectif :** Peaufiner l'experience utilisateur et preparer le deploiement.
 
 ### Sous-etapes
 
-**7.1 - Etats de Chargement**
-- Ajouter des Skeletons sur le calendrier, la liste des posts, et les cards analytiques pendant le fetch
-- Ajouter des spinners sur les boutons d'action (publier, sauvegarder)
-- **Commit :** `feat(ui): add loading skeletons and button spinners`
-
-**7.2 - Etats Vides**
-- Creer des composants "etat vide" pour : calendrier sans post, liste vide, analytics sans donnees
-- Textes simples et utiles, suggestion d'action
-- **Commit :** `feat(ui): add empty states for calendar, posts, and analytics`
-
-**7.3 - Notifications Toast**
-- Brancher le systeme de toast shadcn/ui sur toutes les actions (creation, publication, erreur)
-- **Commit :** `feat(ui): add toast notifications for user actions`
-
-**7.4 - Design Responsive**
-- Verifier et corriger le layout sur mobile (sidebar en drawer, calendrier scrollable)
-- **Commit :** `style(layout): make sidebar and calendar responsive on mobile`
-
-**7.5 - Gestion des Erreurs Globale**
-- Creer `src/app/error.tsx` et `src/app/not-found.tsx`
-- Ajouter une error boundary sur le dashboard
-- **Commit :** `feat(ui): add global error boundary and not found page`
-
-**7.6 - Configuration Production**
-- Creer `docker-compose.prod.yml` avec services app + worker + postgres + redis
-- Creer `Dockerfile` multi-stage pour Next.js
-- Creer `Dockerfile.worker` pour le worker BullMQ
-- Ajouter le script `db:migrate:prod` dans `package.json`
-- **Commit :** `chore(config): add production docker setup`
-
-**7.7 - Variables d'Environnement : Validation au Demarrage**
-- Creer `src/lib/env.ts` avec validation Zod de toutes les variables requises
-- Le serveur ne doit pas demarrer si une variable est manquante
-- **Commit :** `feat(config): add startup environment variable validation`
-
-**7.8 - README**
-- Creer `README.md` avec : description, prerequis, setup local, scripts, deploiement
-- **Commit :** `docs(config): add project readme with setup instructions`
-
----
+- [ ] **7.1** Skeletons de chargement + spinners sur les boutons d'action
+  - `feat(ui): add loading skeletons and button spinners`
+- [ ] **7.2** Etats vides (calendrier, liste posts, analytics)
+  - `feat(ui): add empty states for calendar, posts, and analytics`
+- [ ] **7.3** Notifications toast (sonner) sur toutes les actions
+  - `feat(ui): add toast notifications for user actions`
+- [ ] **7.4** Responsive mobile (sidebar en drawer, calendrier scrollable)
+  - `style(layout): make sidebar and calendar responsive on mobile`
+- [ ] **7.5** Error boundary globale + page 404
+  - `feat(ui): add global error boundary and not found page`
+- [ ] **7.6** Docker Compose prod + Dockerfile multi-stage (app + worker)
+  - `chore(config): add production docker setup`
+- [ ] **7.7** Validation des variables d'environnement au demarrage (`src/lib/env.ts`)
+  - `feat(config): add startup environment variable validation`
+- [ ] **7.8** README
+  - `docs(config): add project readme with setup instructions`
 
 ### Plan de Test - Epic 7
 
@@ -656,19 +444,3 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 - Verifier que `pnpm build` n'a aucun warning de type "missing key" ou "image optimization"
 - Sur mobile, aucun texte ne doit etre tronque involontairement
 ```
-
----
-
-## Recapitulatif des Epics
-
-| Epic | Branche | Duree estimee | Depend de |
-|---|---|---|---|
-| 1 - Foundation | `feat/foundation` | 2-3h | - |
-| 2 - Auth | `feat/auth` | 3-4h | 1 |
-| 3 - Calendar | `feat/calendar` | 4-5h | 2 |
-| 4 - Integrations | `feat/integrations` | 5-6h | 2 |
-| 5 - Scheduler | `feat/scheduler` | 3-4h | 3, 4 |
-| 6 - Analytics | `feat/analytics` | 3-4h | 4, 5 |
-| 7 - Polish | `feat/polish` | 2-3h | 6 |
-
-**Total estime : 22-29h de travail agent**
