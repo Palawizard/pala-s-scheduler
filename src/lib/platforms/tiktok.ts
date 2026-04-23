@@ -35,19 +35,20 @@ export async function exchangeTikTokCode(code: string): Promise<{
     }),
   })
   if (!res.ok) throw new Error(`TikTok token exchange failed: ${await res.text()}`)
-  const body = (await res.json()) as { data: typeof returnType; error: { code: string } }
+  const body = (await res.json()) as {
+    data: {
+      access_token: string
+      refresh_token: string
+      expires_in: number
+      refresh_expires_in: number
+      open_id: string
+    }
+    error: { code: string }
+  }
   if (body.error?.code && body.error.code !== 'ok') {
     throw new Error(`TikTok error: ${JSON.stringify(body.error)}`)
   }
   return body.data
-
-  type returnType = {
-    access_token: string
-    refresh_token: string
-    expires_in: number
-    refresh_expires_in: number
-    open_id: string
-  }
 }
 
 export async function refreshTikTokToken(refreshToken: string): Promise<{
