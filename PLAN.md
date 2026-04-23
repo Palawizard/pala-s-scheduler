@@ -9,7 +9,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | Epic | Statut | Branche | Depend de |
 |---|---|---|---|
 | 1 - Foundation | TERMINE | `feat/foundation` | - |
-| 2 - Auth | EN COURS | `feat/auth` | 1 |
+| 2 - Auth | TERMINE | `feat/auth` | 1 |
 | 3 - Calendar | A FAIRE | `feat/calendar` | 2 |
 | 4 - Integrations | A FAIRE | `feat/integrations` | 2 |
 | 5 - Scheduler | A FAIRE | `feat/scheduler` | 3, 4 |
@@ -52,9 +52,9 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 2 : Authentification & Comptes Connectes — EN COURS
+## Epic 2 : Authentification & Comptes Connectes — TERMINE
 
-**Branche :** `feat/auth`
+**Branche :** `feat/auth` (merge sur `dev` le 24/04/2026)
 **Depend de :** Epic 1 (merge sur `dev`)
 **Objectif :** Login utilisateur + connexion des comptes sociaux (OAuth multi-provider).
 
@@ -86,13 +86,15 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ### Prerequis
 - [ ] Epic 1 fonctionne
-- [ ] Variables GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET dans .env.local
-- [ ] Au moins une variable de plateforme configuree pour tester
+- [ ] Serveur de dev lance (`pnpm dev`)
+- [ ] Tunnel HTTPS lance (`pnpm run dev:tunnel`)
+- [ ] Application ouverte via `https://dev-scheduler.palawi.fr`
+- [ ] Variables OAuth configurees dans `.env.local`
 
 ### Scenarios
 
 #### Login
-1. Aller sur http://localhost:3000 -> redirection vers /login
+1. Aller sur `https://dev-scheduler.palawi.fr` sans session -> redirection vers `/login`
 2. Page /login visible avec formulaire de connexion
 3. Se connecter -> redirection vers /calendar
 
@@ -104,11 +106,17 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 1. /settings/platforms -> carte YouTube affichee, statut "Non connecte"
 2. Cliquer "Connecter" -> redirection vers Google OAuth
 3. Autoriser -> redirection vers l'app, carte YouTube passe a "Connecte"
-4. Nom de la chaine Google visible sur la carte
+4. Nom et avatar de la chaine YouTube visibles sur la carte
+
+#### Connexion Instagram, TikTok et X
+1. /settings/platforms -> cartes visibles, statut "Non connecte"
+2. Cliquer "Connecter" sur chaque plateforme
+3. Autoriser -> retour sur l'app, carte de la plateforme passe a "Connecte"
+4. Nom/avatar du compte plateforme visibles quand l'API les renvoie
 
 #### Deconnexion d'un compte
 1. Cliquer "Deconnecter" sur un compte connecte
-2. Confirmer -> le compte passe a "Non connecte" sans rechargement de page
+2. Le compte passe a "Non connecte" sans rechargement de page
 
 #### Securite
 1. Appeler GET /api/platforms sans etre connecte -> reponse 401
@@ -117,6 +125,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ### Points de vigilance
 - Les tokens OAuth doivent etre visibles dans Prisma Studio (ConnectedPlatform)
 - Pas de token visible dans les reponses API ou dans les logs du navigateur
+- Les callbacks OAuth doivent utiliser le domaine HTTPS tunnel, pas `localhost`
 ```
 
 ---
