@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { generateState, generatePKCE } from '@/lib/platforms/oauth-helpers'
 import { getTwitterAuthUrl } from '@/lib/platforms/twitter'
 
 export async function GET() {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getCurrentUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
   }
 

@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 export async function GET() {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getCurrentUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
   }
 
   const platforms = await db.connectedPlatform.findMany({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     select: {
       id: true,
       platform: true,

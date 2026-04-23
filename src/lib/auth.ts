@@ -8,6 +8,13 @@ import { db } from './db'
 
 const emailServer = process.env.EMAIL_SERVER || 'smtp://localhost:1025'
 
+export type CurrentUser = {
+  id: string
+  email: string
+  name: string | null
+  image: string | null
+}
+
 async function saveYoutubeConnectedPlatform({
   userId,
   accessToken,
@@ -150,3 +157,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 })
+
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const session = await auth()
+  if (!session?.user?.id) return null
+
+  return db.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      image: true,
+    },
+  })
+}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { PLATFORMS } from '@/types'
 import type { Platform } from '@/types'
@@ -16,8 +16,8 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ platform: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const user = await getCurrentUser()
+  if (!user) {
     return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
   }
 
@@ -28,7 +28,7 @@ export async function DELETE(
   }
 
   const deleted = await db.connectedPlatform.deleteMany({
-    where: { userId: session.user.id, platform: normalizedPlatform as Platform },
+    where: { userId: user.id, platform: normalizedPlatform as Platform },
   })
 
   if (deleted.count === 0) {

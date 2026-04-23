@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { getAppUrl, getPKCEVerifierCookie, getStateCookie } from '@/lib/platforms/oauth-helpers'
 import { exchangeTikTokCode, getTikTokUser } from '@/lib/platforms/tiktok'
 
 export async function GET(request: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
     return NextResponse.redirect(getAppUrl('/login'))
   }
 
@@ -35,30 +35,30 @@ export async function GET(request: NextRequest) {
 
   try {
     const tokens = await exchangeTikTokCode(code, codeVerifier)
-    const user = await getTikTokUser(tokens.access_token)
+    const platformUser = await getTikTokUser(tokens.access_token)
 
     const tokenExpiry = new Date(Date.now() + tokens.expires_in * 1000)
 
     await db.connectedPlatform.upsert({
-      where: { userId_platform: { userId: session.user.id, platform: 'TIKTOK' } },
+      where: { userId_platform: { userId: currentUser.id, platform: 'TIKTOK' } },
       update: {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
         tokenExpiry,
-        platformUserId: user.open_id,
-        platformUsername: user.display_name,
-        platformAvatar: user.avatar_url,
+        platformUserId: platformUser.open_id,
+        platformUsername: platformUser.display_name,
+        platformAvatar: platformUser.avatar_url,
         isActive: true,
       },
       create: {
-        userId: session.user.id,
+        userId: currentUser.id,
         platform: 'TIKTOK',
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
         tokenExpiry,
-        platformUserId: user.open_id,
-        platformUsername: user.display_name,
-        platformAvatar: user.avatar_url,
+        platformUserId: platformUser.open_id,
+        platformUsername: platformUser.display_name,
+        platformAvatar: platformUser.avatar_url,
       },
     })
 
