@@ -9,6 +9,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
   }
 
+  if (!process.env.TWITTER_CLIENT_ID || !process.env.TWITTER_CLIENT_SECRET) {
+    return NextResponse.json({ error: 'Configuration X manquante' }, { status: 400 })
+  }
+
   const state = generateState()
   const { verifier, challenge } = generatePKCE()
   const url = getTwitterAuthUrl(state, challenge)

@@ -5,24 +5,28 @@ const TIKTOK_USER = 'https://open.tiktokapis.com/v2/user/info/'
 const CALLBACK_URL = () =>
   `${process.env.NEXTAUTH_URL}/api/platforms/tiktok/callback`
 
-export function getTikTokAuthUrl(state: string): string {
+type TikTokTokenResponse = {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+  refresh_expires_in: number
+  open_id: string
+}
+
+export function getTikTokAuthUrl(state: string, codeChallenge: string): string {
   const params = new URLSearchParams({
     client_key: process.env.TIKTOK_CLIENT_KEY!,
     redirect_uri: CALLBACK_URL(),
     response_type: 'code',
     scope: 'user.info.basic,video.upload,video.publish',
     state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
   })
   return `${TIKTOK_AUTH}?${params}`
 }
 
-export async function exchangeTikTokCode(code: string): Promise<{
-  access_token: string
-  refresh_token: string
-  expires_in: number
-  refresh_expires_in: number
-  open_id: string
-}> {
+export async function exchangeTikTokCode(code: string, codeVerifier: string): Promise<TikTokTokenResponse> {
   const res = await fetch(TIKTOK_TOKEN, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -32,23 +36,36 @@ export async function exchangeTikTokCode(code: string): Promise<{
       code,
       grant_type: 'authorization_code',
       redirect_uri: CALLBACK_URL(),
+      code_verifier: codeVerifier,
     }),
   })
   if (!res.ok) throw new Error(`TikTok token exchange failed: ${await res.text()}`)
-  const body = (await res.json()) as {
-    data: {
-      access_token: string
-      refresh_token: string
-      expires_in: number
-      refresh_expires_in: number
-      open_id: string
-    }
-    error: { code: string }
+  const body = (await res.json()) as Partial<TikTokTokenResponse> & {
+    data?: Partial<TikTokTokenResponse>
+    error?: { code?: string; message?: string; log_id?: string }
   }
   if (body.error?.code && body.error.code !== 'ok') {
     throw new Error(`TikTok error: ${JSON.stringify(body.error)}`)
   }
-  return body.data
+
+  const tokens = body.data?.access_token ? body.data : body
+  if (
+    !tokens.access_token ||
+    !tokens.refresh_token ||
+    typeof tokens.expires_in !== 'number' ||
+    typeof tokens.refresh_expires_in !== 'number' ||
+    !tokens.open_id
+  ) {
+    throw new Error(`TikTok token response missing fields: ${Object.keys(body).join(', ')}`)
+  }
+
+  return {
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_in: tokens.expires_in,
+    refresh_expires_in: tokens.refresh_expires_in,
+    open_id: tokens.open_id,
+  }
 }
 
 export async function refreshTikTokToken(refreshToken: string): Promise<{
@@ -68,12 +85,23 @@ export async function refreshTikTokToken(refreshToken: string): Promise<{
     }),
   })
   if (!res.ok) throw new Error(`TikTok token refresh failed: ${await res.text()}`)
-  const body = (await res.json()) as { data: unknown }
-  return body.data as {
-    access_token: string
-    refresh_token: string
-    expires_in: number
-    refresh_expires_in: number
+  const body = (await res.json()) as Partial<TikTokTokenResponse> & {
+    data?: Partial<TikTokTokenResponse>
+  }
+  const tokens = body.data?.access_token ? body.data : body
+  if (
+    !tokens.access_token ||
+    !tokens.refresh_token ||
+    typeof tokens.expires_in !== 'number' ||
+    typeof tokens.refresh_expires_in !== 'number'
+  ) {
+    throw new Error(`TikTok refresh response missing fields: ${Object.keys(body).join(', ')}`)
+  }
+  return {
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_in: tokens.expires_in,
+    refresh_expires_in: tokens.refresh_expires_in,
   }
 }
 

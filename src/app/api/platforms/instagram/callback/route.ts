@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getStateCookie } from '@/lib/platforms/oauth-helpers'
+import { getAppUrl, getStateCookie } from '@/lib/platforms/oauth-helpers'
 import {
   exchangeInstagramCode,
   getLongLivedInstagramToken,
@@ -11,7 +11,7 @@ import {
 export async function GET(request: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(getAppUrl('/login'))
   }
 
   const { searchParams } = request.nextUrl
@@ -20,16 +20,16 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error')
 
   if (error) {
-    return NextResponse.redirect(new URL('/settings/platforms?error=access_denied', request.url))
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=access_denied'))
   }
 
   const storedState = getStateCookie(request)
   if (!state || !storedState || state !== storedState) {
-    return NextResponse.redirect(new URL('/settings/platforms?error=invalid_state', request.url))
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=invalid_state'))
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/settings/platforms?error=missing_code', request.url))
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=missing_code'))
   }
 
   try {
@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
         refreshToken: null,
         tokenExpiry,
         platformUserId: user.id,
-        platformUsername: user.name,
-        platformAvatar: user.picture?.data?.url ?? null,
+        platformUsername: user.username,
+        platformAvatar: user.profile_picture_url ?? null,
         isActive: true,
       },
       create: {
@@ -57,15 +57,16 @@ export async function GET(request: NextRequest) {
         refreshToken: null,
         tokenExpiry,
         platformUserId: user.id,
-        platformUsername: user.name,
-        platformAvatar: user.picture?.data?.url ?? null,
+        platformUsername: user.username,
+        platformAvatar: user.profile_picture_url ?? null,
       },
     })
 
-    const response = NextResponse.redirect(new URL('/settings/platforms?success=instagram', request.url))
+    const response = NextResponse.redirect(getAppUrl('/settings/platforms?success=instagram'))
     response.cookies.delete('oauth_state')
     return response
-  } catch {
-    return NextResponse.redirect(new URL('/settings/platforms?error=token_exchange', request.url))
+  } catch (err) {
+    console.error('[instagram] oauth callback failed:', err)
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=token_exchange'))
   }
 }

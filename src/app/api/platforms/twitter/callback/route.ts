@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { getStateCookie, getPKCEVerifierCookie } from '@/lib/platforms/oauth-helpers'
+import { getAppUrl, getStateCookie, getPKCEVerifierCookie } from '@/lib/platforms/oauth-helpers'
 import { exchangeTwitterCode, getTwitterUser } from '@/lib/platforms/twitter'
 
 export async function GET(request: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(getAppUrl('/login'))
   }
 
   const { searchParams } = request.nextUrl
@@ -16,21 +16,21 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error')
 
   if (error) {
-    return NextResponse.redirect(new URL('/settings/platforms?error=access_denied', request.url))
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=access_denied'))
   }
 
   const storedState = getStateCookie(request)
   if (!state || !storedState || state !== storedState) {
-    return NextResponse.redirect(new URL('/settings/platforms?error=invalid_state', request.url))
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=invalid_state'))
   }
 
   const codeVerifier = getPKCEVerifierCookie(request)
   if (!codeVerifier) {
-    return NextResponse.redirect(new URL('/settings/platforms?error=missing_verifier', request.url))
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=missing_verifier'))
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/settings/platforms?error=missing_code', request.url))
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=missing_code'))
   }
 
   try {
@@ -62,11 +62,12 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    const response = NextResponse.redirect(new URL('/settings/platforms?success=twitter', request.url))
+    const response = NextResponse.redirect(getAppUrl('/settings/platforms?success=twitter'))
     response.cookies.delete('oauth_state')
     response.cookies.delete('pkce_verifier')
     return response
-  } catch {
-    return NextResponse.redirect(new URL('/settings/platforms?error=token_exchange', request.url))
+  } catch (err) {
+    console.error('[twitter] oauth callback failed:', err)
+    return NextResponse.redirect(getAppUrl('/settings/platforms?error=token_exchange'))
   }
 }

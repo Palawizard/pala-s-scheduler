@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { PLATFORMS } from '@/types'
+import type { Platform } from '@/types'
+
+const PLATFORM_SLUGS: Record<string, Platform> = {
+  youtube: 'YOUTUBE',
+  instagram: 'INSTAGRAM',
+  tiktok: 'TIKTOK',
+  twitter: 'TWITTER',
+  x: 'TWITTER',
+}
 
 export async function DELETE(
   _request: NextRequest,
@@ -13,12 +22,13 @@ export async function DELETE(
   }
 
   const { platform } = await params
-  if (!PLATFORMS.includes(platform as (typeof PLATFORMS)[number])) {
+  const normalizedPlatform = PLATFORM_SLUGS[platform.toLowerCase()] ?? platform.toUpperCase()
+  if (!PLATFORMS.includes(normalizedPlatform as Platform)) {
     return NextResponse.json({ error: 'Plateforme invalide' }, { status: 400 })
   }
 
   const deleted = await db.connectedPlatform.deleteMany({
-    where: { userId: session.user.id, platform: platform as (typeof PLATFORMS)[number] },
+    where: { userId: session.user.id, platform: normalizedPlatform as Platform },
   })
 
   if (deleted.count === 0) {

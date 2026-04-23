@@ -6,6 +6,49 @@ import Nodemailer from 'next-auth/providers/nodemailer'
 import { authConfig } from './auth-config'
 import { db } from './db'
 
+const emailServer = process.env.EMAIL_SERVER || 'smtp://localhost:1025'
+
+async function saveYoutubeConnectedPlatform({
+  userId,
+  accessToken,
+  refreshToken,
+  expiresAt,
+  providerAccountId,
+  username,
+  avatar,
+}: {
+  userId: string
+  accessToken: string
+  refreshToken?: string | null
+  expiresAt?: number | null
+  providerAccountId: string
+  username?: string | null
+  avatar?: string | null
+}): Promise<void> {
+  await db.connectedPlatform.upsert({
+    where: { userId_platform: { userId, platform: 'YOUTUBE' } },
+    update: {
+      accessToken,
+      refreshToken: refreshToken ?? null,
+      tokenExpiry: expiresAt ? new Date(expiresAt * 1000) : null,
+      platformUserId: providerAccountId,
+      platformUsername: username ?? null,
+      platformAvatar: avatar ?? null,
+      isActive: true,
+    },
+    create: {
+      userId,
+      platform: 'YOUTUBE',
+      accessToken,
+      refreshToken: refreshToken ?? null,
+      tokenExpiry: expiresAt ? new Date(expiresAt * 1000) : null,
+      platformUserId: providerAccountId,
+      platformUsername: username ?? null,
+      platformAvatar: avatar ?? null,
+    },
+  })
+}
+
 declare module 'next-auth' {
   interface Session {
     user: { id: string } & DefaultSession['user']
@@ -34,12 +77,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
     Nodemailer({
-      server: process.env.EMAIL_SERVER,
+      server: emailServer,
       from: process.env.EMAIL_FROM ?? 'noreply@localhost',
       sendVerificationRequest: async ({ identifier, url }) => {
         if (process.env.NODE_ENV !== 'production') {
           console.log(`\n[auth] Magic link for ${identifier}:\n${url}\n`)
           return
+        }
+        if (!process.env.EMAIL_SERVER) {
+          throw new Error('EMAIL_SERVER is required to send magic links in production')
         }
         const { createTransport } = await import('nodemailer')
         const transport = createTransport(process.env.EMAIL_SERVER)
@@ -61,24 +107,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user, account }) {
       if (account?.provider === 'google' && account.access_token && user.id) {
         try {
-          await db.connectedPlatform.upsert({
-            where: { userId_platform: { userId: user.id, platform: 'YOUTUBE' } },
-            update: {
-              accessToken: account.access_token,
-              refreshToken: account.refresh_token ?? null,
-              tokenExpiry: account.expires_at ? new Date(account.expires_at * 1000) : null,
-              isActive: true,
-            },
-            create: {
-              userId: user.id,
-              platform: 'YOUTUBE',
-              accessToken: account.access_token,
-              refreshToken: account.refresh_token ?? null,
-              tokenExpiry: account.expires_at ? new Date(account.expires_at * 1000) : null,
-              platformUserId: account.providerAccountId,
-              platformUsername: user.name ?? null,
-              platformAvatar: user.image ?? null,
-            },
+          const dbUser = await db.user.findUnique({ where: { id: user.id }, select: { id: true } })
+          if (!dbUser) return true
+
+          await saveYoutubeConnectedPlatform({
+            userId: dbUser.id,
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+            expiresAt: account.expires_at,
+            providerAccountId: account.providerAccountId,
+            username: user.name,
+            avatar: user.image,
           })
         } catch (err) {
           console.error('[auth] failed to save youtube connected platform:', err)
@@ -89,6 +128,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     session({ session, user }) {
       session.user.id = user.id
       return session
+    },
+  },
+  events: {
+    async linkAccount({ user, account }) {
+      if (account.provider !== 'google' || !account.access_token || !user.id) return
+
+      try {
+        await saveYoutubeConnectedPlatform({
+          userId: user.id,
+          accessToken: account.access_token,
+          refreshToken: account.refresh_token,
+          expiresAt: account.expires_at,
+          providerAccountId: account.providerAccountId,
+          username: user.name,
+          avatar: user.image,
+        })
+      } catch (err) {
+        console.error('[auth] failed to link youtube connected platform:', err)
+      }
     },
   },
 })

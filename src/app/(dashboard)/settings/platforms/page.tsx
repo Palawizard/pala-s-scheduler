@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { Suspense, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { PlatformConnectionCard } from '@/components/platforms/platform-connection-card'
@@ -30,7 +30,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   token_exchange: 'Echec de la connexion au compte',
 }
 
-export default function PlatformsSettingsPage() {
+function PlatformsSettingsContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { platforms, isLoading, refetch } = usePlatforms()
@@ -56,7 +56,8 @@ export default function PlatformsSettingsPage() {
 
     const res = await fetch(AUTH_URL_MAP[platform])
     if (!res.ok) {
-      toast.error('Impossible de lancer la connexion')
+      const body = (await res.json().catch(() => null)) as { error?: string } | null
+      toast.error(body?.error ?? 'Impossible de lancer la connexion')
       return
     }
     const body = (await res.json()) as { data: { url: string } }
@@ -106,5 +107,13 @@ export default function PlatformsSettingsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function PlatformsSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <PlatformsSettingsContent />
+    </Suspense>
   )
 }

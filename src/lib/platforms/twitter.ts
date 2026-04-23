@@ -1,6 +1,6 @@
-const TWITTER_AUTH = 'https://twitter.com/i/oauth2/authorize'
-const TWITTER_TOKEN = 'https://api.twitter.com/2/oauth2/token'
-const TWITTER_USER = 'https://api.twitter.com/2/users/me'
+const TWITTER_AUTH = 'https://x.com/i/oauth2/authorize'
+const TWITTER_TOKEN = 'https://api.x.com/2/oauth2/token'
+const TWITTER_USER = 'https://api.x.com/2/users/me'
 
 const CALLBACK_URL = () =>
   `${process.env.NEXTAUTH_URL}/api/platforms/twitter/callback`

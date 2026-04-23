@@ -11,10 +11,20 @@ export function generatePKCE(): { verifier: string; challenge: string } {
   return { verifier, challenge }
 }
 
+export function generateTikTokPKCE(): { verifier: string; challenge: string } {
+  const verifier = randomBytes(64).toString('base64url')
+  const challenge = createHash('sha256').update(verifier).digest('hex')
+  return { verifier, challenge }
+}
+
 export function getStateCookie(request: NextRequest): string | undefined {
   return request.cookies.get('oauth_state')?.value
 }
 
 export function getPKCEVerifierCookie(request: NextRequest): string | undefined {
   return request.cookies.get('pkce_verifier')?.value
+}
+
+export function getAppUrl(path: string): URL {
+  return new URL(path, process.env.NEXTAUTH_URL ?? 'http://localhost:3000')
 }

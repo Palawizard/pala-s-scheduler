@@ -9,6 +9,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
   }
 
+  if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) {
+    return NextResponse.json({ error: 'Configuration Instagram manquante' }, { status: 400 })
+  }
+
   const state = generateState()
   const url = getInstagramAuthUrl(state)
 
