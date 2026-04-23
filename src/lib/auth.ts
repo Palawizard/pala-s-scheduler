@@ -2,6 +2,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import type { DefaultSession } from 'next-auth'
 import NextAuth from 'next-auth'
 import Nodemailer from 'next-auth/providers/nodemailer'
+import { authConfig } from './auth-config'
 import { db } from './db'
 
 declare module 'next-auth' {
@@ -11,6 +12,7 @@ declare module 'next-auth' {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(db),
   providers: [
     Nodemailer({
