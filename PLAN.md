@@ -9,7 +9,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | Epic | Statut | Branche | Depend de |
 |---|---|---|---|
 | 1 - Foundation | TERMINE | `feat/foundation` | - |
-| 2 - Auth | A FAIRE | `feat/auth` | 1 |
+| 2 - Auth | EN COURS | `feat/auth` | 1 |
 | 3 - Calendar | A FAIRE | `feat/calendar` | 2 |
 | 4 - Integrations | A FAIRE | `feat/integrations` | 2 |
 | 5 - Scheduler | A FAIRE | `feat/scheduler` | 3, 4 |
@@ -52,7 +52,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 2 : Authentification & Comptes Connectes — A FAIRE
+## Epic 2 : Authentification & Comptes Connectes — EN COURS
 
 **Branche :** `feat/auth`
 **Depend de :** Epic 1 (merge sur `dev`)
@@ -60,24 +60,24 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ### Sous-etapes
 
-- [ ] **2.1** Auth.js v5 + adapter Prisma + provider Email/Magic Link + page login
+- [x] **2.1** Auth.js v5 + adapter Prisma + provider Email/Magic Link + page login
   - `feat(auth): setup auth.js v5 with prisma adapter and email provider`
-- [ ] **2.2** Middleware de protection des routes (`/(dashboard)/*`)
+- [x] **2.2** Middleware de protection des routes (`/(dashboard)/*`)
   - `feat(auth): add route protection middleware`
-- [ ] **2.3** Provider Google OAuth (scopes YouTube)
+- [x] **2.3** Provider Google OAuth (scopes YouTube)
   - `feat(auth): add google oauth provider for youtube`
-- [ ] **2.4** API `GET /api/platforms` + `DELETE /api/platforms/[platform]` + factory `getPlatformClient`
+- [x] **2.4** API `GET /api/platforms` + `DELETE /api/platforms/[platform]` + factory `getPlatformClient`
   - `feat(platforms): add connected platforms api routes`
-- [ ] **2.5** OAuth Instagram (Meta Graph API) : auth-url + callback + stockage token
+- [x] **2.5** OAuth Instagram (Meta Graph API) : auth-url + callback + stockage token
   - `feat(instagram): add oauth flow and token storage`
-- [ ] **2.6** OAuth TikTok : auth-url + callback + stockage token
+- [x] **2.6** OAuth TikTok : auth-url + callback + stockage token
   - `feat(tiktok): add oauth flow and token storage`
-- [ ] **2.7** OAuth X (Twitter) : OAuth 2.0 PKCE + auth-url + callback + stockage token
-  - `feat(twitter): add oauth 2.0 pkce flow and token storage`
-- [ ] **2.8** Page `/settings/platforms` : cartes de connexion par plateforme
-  - `feat(settings): add connected platforms management page`
-- [ ] **2.9** Menu utilisateur dans le header (avatar + deconnexion)
-  - `feat(layout): add user menu to header`
+- [x] **2.7** OAuth X (Twitter) : OAuth 2.0 PKCE + auth-url + callback + stockage token
+  - `feat(twitter): add oauth pkce flow and token storage`
+- [x] **2.8** Page `/settings/platforms` : cartes de connexion par plateforme
+  - `feat(settings): add platforms page with connection cards`
+- [x] **2.9** Menu utilisateur dans le header (avatar + deconnexion)
+  - `feat(header): add user avatar and dropdown menu`
 
 ### Plan de Test - Epic 2
 
