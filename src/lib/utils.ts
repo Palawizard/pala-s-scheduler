@@ -30,7 +30,7 @@ export function truncate(str: string, maxLength: number): string {
   return `${str.slice(0, maxLength)}...`
 }
 
-export function extractR2Key(url: string): string {
-  const base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? ''
+export function extractStorageKey(url: string): string {
+  const base = process.env.NEXT_PUBLIC_LOCAL_STORAGE_PUBLIC_URL ?? ''
   return url.replace(`${base}/`, '')
 }

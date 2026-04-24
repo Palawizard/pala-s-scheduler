@@ -1,74 +1,72 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { randomUUID } from 'node:crypto'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 
-function getS3Client() {
-  return new S3Client({
-    region: 'auto',
-    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-    },
-  })
+const DEFAULT_STORAGE_ROOT = path.join(process.cwd(), 'storage')
+const DEFAULT_PUBLIC_BASE_URL = '/api/media'
+
+function getStorageRoot(): string {
+  return path.resolve(process.env.LOCAL_STORAGE_ROOT ?? DEFAULT_STORAGE_ROOT)
 }
 
-const BUCKET = () => process.env.R2_BUCKET_NAME!
+function getPublicBaseUrl(): string {
+  return (process.env.LOCAL_STORAGE_PUBLIC_URL ?? DEFAULT_PUBLIC_BASE_URL).replace(/\/$/, '')
+}
+
+function resolveStoragePath(key: string): string {
+  const storageRoot = getStorageRoot()
+  const filePath = path.resolve(storageRoot, key)
+
+  if (!filePath.startsWith(`${storageRoot}${path.sep}`)) {
+    throw new Error('Invalid storage key')
+  }
+
+  return filePath
+}
 
 export async function uploadFile(
   key: string,
   body: Buffer,
-  contentType: string
+  _contentType: string
 ): Promise<string> {
-  const s3 = getS3Client()
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: BUCKET(),
-      Key: key,
-      Body: body,
-      ContentType: contentType,
-    })
-  )
+  const filePath = resolveStoragePath(key)
+  await mkdir(path.dirname(filePath), { recursive: true })
+  await writeFile(filePath, body)
+
   return getPublicUrl(key)
 }
 
 export async function deleteFile(key: string): Promise<void> {
-  const s3 = getS3Client()
-  await s3.send(
-    new DeleteObjectCommand({
-      Bucket: BUCKET(),
-      Key: key,
-    })
-  )
+  await rm(resolveStoragePath(key), { force: true })
 }
 
-export async function getPresignedUploadUrl(
-  key: string,
-  contentType: string,
-  expiresInSeconds = 3600
-): Promise<string> {
-  const s3 = getS3Client()
-  return getSignedUrl(
-    s3,
-    new PutObjectCommand({
-      Bucket: BUCKET(),
-      Key: key,
-      ContentType: contentType,
-    }),
-    { expiresIn: expiresInSeconds }
-  )
+export async function readFileFromStorage(key: string): Promise<Buffer> {
+  return readFile(resolveStoragePath(key))
 }
 
 export function getPublicUrl(key: string): string {
-  return `${process.env.R2_PUBLIC_URL}/${key}`
+  return `${getPublicBaseUrl()}/${key}`
 }
 
 export function extractKeyFromUrl(url: string): string {
-  const base = process.env.R2_PUBLIC_URL ?? ''
-  return url.replace(`${base}/`, '')
+  const publicBaseUrl = getPublicBaseUrl()
+
+  if (url.startsWith(`${publicBaseUrl}/`)) {
+    return url.slice(publicBaseUrl.length + 1)
+  }
+
+  const parsedUrl = new URL(url, process.env.NEXTAUTH_URL ?? 'http://localhost:3000')
+  const basePath = new URL(publicBaseUrl, parsedUrl.origin).pathname.replace(/\/$/, '')
+
+  if (!parsedUrl.pathname.startsWith(`${basePath}/`)) {
+    return ''
+  }
+
+  return decodeURIComponent(parsedUrl.pathname.slice(basePath.length + 1))
 }
 
 export function buildMediaKey(userId: string, filename: string): string {
   const timestamp = Date.now()
   const sanitized = filename.replace(/[^a-zA-Z0-9._-]/g, '_')
-  return `media/${userId}/${timestamp}-${sanitized}`
+  return `media/${userId}/${timestamp}-${randomUUID()}-${sanitized}`
 }

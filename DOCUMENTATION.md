@@ -33,14 +33,14 @@ Pala's Scheduler est une application web personnelle de planification et publica
 | Redis | 7.x | Cache + file d'attente |
 | BullMQ | 5.x | Worker de publication planifiee |
 | Auth.js | v5 (beta) | Authentification OAuth |
-| AWS SDK v3 | latest | Acces Cloudflare R2 (S3-compatible) |
+| Filesystem local | Node.js | Stockage medias sur l'infra personnelle |
 | Sharp | latest | Traitement/compression d'images |
 
 ### Infrastructure
 | Outil | Role |
 |---|---|
 | Docker Compose | Environnement de dev local |
-| Cloudflare R2 | Stockage medias (images, videos) |
+| Stockage local | Medias sur volume disque ou NAS personnel |
 | Vercel | Deploiement frontend + API routes |
 | Railway / Render | PostgreSQL + Redis en prod |
 
@@ -78,7 +78,7 @@ PostgreSQL           Redis
        YouTube  Insta  TikTok   X API
           |
           v
-     Cloudflare R2 (medias stockes)
+     Stockage local (medias stockes)
 ```
 
 Le worker BullMQ tourne en parallele du serveur Next.js (via `npm run worker` ou processus separe en prod). Il consomme des jobs de la queue Redis et appelle les APIs sociales au moment prevu.
@@ -141,7 +141,7 @@ pala-s-scheduler/
 |   |   |-- auth.ts                      # config Auth.js
 |   |   |-- db.ts                        # instance Prisma singleton
 |   |   |-- queue.ts                     # instance BullMQ + helpers
-|   |   |-- storage.ts                   # Cloudflare R2 helpers
+|   |   |-- storage.ts                   # helpers stockage local
 |   |   |-- platforms/
 |   |   |   |-- youtube.ts
 |   |   |   |-- instagram.ts
@@ -371,8 +371,8 @@ enum PostPlatformStatus {
 ### Upload
 | Methode | Route | Description |
 |---|---|---|
-| POST | `/api/upload` | Upload media vers R2, retourne URL |
-| DELETE | `/api/upload` | Supprimer un media de R2 |
+| POST | `/api/upload` | Upload media vers le stockage local, retourne URL |
+| DELETE | `/api/upload` | Supprimer un media du stockage local |
 
 ---
 
@@ -431,12 +431,10 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pala_scheduler
 # Redis
 REDIS_URL=redis://localhost:6379
 
-# Cloudflare R2
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET_NAME=pala-scheduler
-R2_PUBLIC_URL=                        # URL publique du bucket R2
+# Local media storage
+LOCAL_STORAGE_ROOT=./storage          # Dossier local ou volume monte
+LOCAL_STORAGE_PUBLIC_URL=http://localhost:3000/api/media
+NEXT_PUBLIC_LOCAL_STORAGE_PUBLIC_URL=http://localhost:3000/api/media
 
 # YouTube
 GOOGLE_CLIENT_ID=
@@ -632,7 +630,7 @@ volumes:
 | Queue de jobs | BullMQ + Redis | Fiable, retry automatique, UI de monitoring disponible (Bull Board) |
 | Auth | Auth.js v5 | Support natif OAuth multi-provider |
 | ORM | Prisma | Type-safety, migrations, studio visuel |
-| Stockage medias | Cloudflare R2 | Pas de frais de sortie, compatible S3 |
+| Stockage medias | Stockage local | Compatible infra personnelle, volume disque ou NAS |
 | Calendrier | FullCalendar | Drag-and-drop, vues multiples, tres complet |
 | State management | Zustand | Leger, pas de boilerplate Redux |
 | Composants UI | shadcn/ui | Non-opinionated, copiable dans le projet, accessible |

@@ -16,11 +16,11 @@ export const PLATFORM_COLORS: Record<Platform, string> = {
 
 export const POST_STATUS_LABELS: Record<PostStatus, string> = {
   DRAFT: 'Brouillon',
-  SCHEDULED: 'Planifie',
+  SCHEDULED: 'Planifié',
   PUBLISHING: 'En cours',
-  PUBLISHED: 'Publie',
-  FAILED: 'Echec',
-  CANCELLED: 'Annule',
+  PUBLISHED: 'Publié',
+  FAILED: 'Échec',
+  CANCELLED: 'Annulé',
 }
 
 export const POST_STATUS_COLORS: Record<PostStatus, string> = {

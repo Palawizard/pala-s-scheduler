@@ -1,0 +1,98 @@
+'use client'
+
+import type { CalendarOptions } from '@fullcalendar/core'
+import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
+import FullCalendar from '@fullcalendar/react'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import { toast } from 'sonner'
+
+import { PostEvent } from '@/components/calendar/post-event'
+import { type PostView, usePosts, useUpdatePost } from '@/hooks/use-posts'
+import { PLATFORM_COLORS } from '@/lib/constants'
+
+type SchedulerCalendarProps = {
+  onDateClick?: (date: Date) => void
+  onPostClick?: (post: PostView) => void
+}
+
+type EventDropInfo = Parameters<NonNullable<CalendarOptions['eventDrop']>>[0]
+type EventClickInfo = Parameters<NonNullable<CalendarOptions['eventClick']>>[0]
+
+export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalendarProps) {
+  const { data: posts = [], isLoading } = usePosts()
+  const updatePost = useUpdatePost()
+
+  const events = posts
+    .filter((post) => post.scheduledAt)
+    .map((post) => {
+      const firstPlatform = post.platforms[0]?.platform
+
+      return {
+        id: post.id,
+        title: post.title || post.caption || 'Publication',
+        start: post.scheduledAt ?? undefined,
+        backgroundColor: firstPlatform ? PLATFORM_COLORS[firstPlatform] : '#525252',
+        borderColor: firstPlatform ? PLATFORM_COLORS[firstPlatform] : '#525252',
+        extendedProps: { post },
+      }
+    })
+
+  async function handleEventDrop(eventDrop: EventDropInfo) {
+    const nextDate = eventDrop.event.start
+    if (!nextDate) {
+      eventDrop.revert()
+      return
+    }
+
+    try {
+      await updatePost.mutateAsync({
+        id: eventDrop.event.id,
+        payload: { scheduledAt: nextDate.toISOString() },
+      })
+      toast.success('Publication déplacée')
+    } catch (error) {
+      eventDrop.revert()
+      toast.error(error instanceof Error ? error.message : 'Déplacement impossible')
+    }
+  }
+
+  function handleDateClick(dateClick: DateClickArg) {
+    onDateClick?.(dateClick.date)
+  }
+
+  function handleEventClick(eventClick: EventClickInfo) {
+    const post = eventClick.event.extendedProps.post as PostView | undefined
+    if (post) onPostClick?.(post)
+  }
+
+  return (
+    <div className="min-h-0 flex-1 rounded-lg border bg-white p-3">
+      <FullCalendar
+        plugins={[timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        locale="fr"
+        height="100%"
+        editable
+        selectable
+        nowIndicator
+        events={events}
+        dateClick={handleDateClick}
+        eventClick={handleEventClick}
+        eventDrop={handleEventDrop}
+        eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
+        buttonText={{
+          today: 'Aujourd’hui',
+          week: 'Semaine',
+        }}
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: '',
+        }}
+      />
+      {isLoading && (
+        <div className="text-muted-foreground mt-3 text-sm">Chargement du calendrier...</div>
+      )}
+    </div>
+  )
+}

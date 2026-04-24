@@ -6,7 +6,7 @@ import { getInstagramAuthUrl } from '@/lib/platforms/instagram'
 export async function GET() {
   const user = await getCurrentUser()
   if (!user) {
-    return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
   if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) {

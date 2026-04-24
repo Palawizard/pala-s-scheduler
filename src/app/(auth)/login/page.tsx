@@ -22,9 +22,9 @@ export default function LoginPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="w-full max-w-sm space-y-4 px-4 text-center">
-          <h1 className="text-2xl font-semibold">Verifiez votre boite mail</h1>
+          <h1 className="text-2xl font-semibold">Vérifiez votre boîte mail</h1>
           <p className="text-muted-foreground text-sm">
-            Un lien de connexion a ete envoye a <strong>{email}</strong>.
+            Un lien de connexion a été envoyé à <strong>{email}</strong>.
           </p>
           <button
             className="text-muted-foreground text-sm underline underline-offset-4"

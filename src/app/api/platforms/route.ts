@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 export async function GET() {
   const user = await getCurrentUser()
   if (!user) {
-    return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
   const platforms = await db.connectedPlatform.findMany({

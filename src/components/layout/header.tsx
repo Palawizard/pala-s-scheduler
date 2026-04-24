@@ -43,14 +43,14 @@ export function Header() {
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <a href="/settings/platforms">Comptes connectes</a>
+              <a href="/settings/platforms">Comptes connectés</a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600 focus:text-red-600"
               onClick={() => signOut({ callbackUrl: '/login' })}
             >
-              Se deconnecter
+              Se déconnecter
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
