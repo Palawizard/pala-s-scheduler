@@ -108,7 +108,7 @@ model PostPlatform {
   errorMessage        String?            @db.Text
   publishedAt         DateTime?
   post                Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
-  connectedPlatform   ConnectedPlatform  @relation(fields: [connectedPlatformId], references: [id])
+  connectedPlatform   ConnectedPlatform  @relation(fields: [connectedPlatformId], references: [id], onDelete: Cascade)
   analytics           PostAnalytics[]
 
   @@unique([postId, platform])
