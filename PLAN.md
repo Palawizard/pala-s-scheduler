@@ -6,15 +6,15 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ## Progression
 
-| Epic | Statut | Branche | Depend de |
-|---|---|---|---|
-| 1 - Foundation | TERMINE | `feat/foundation` | - |
-| 2 - Auth | TERMINE | `feat/auth` | 1 |
-| 3 - Calendar | A FAIRE | `feat/calendar` | 2 |
-| 4 - Integrations | A FAIRE | `feat/integrations` | 2 |
-| 5 - Scheduler | A FAIRE | `feat/scheduler` | 3, 4 |
-| 6 - Analytics | A FAIRE | `feat/analytics` | 4, 5 |
-| 7 - Polish | A FAIRE | `feat/polish` | 6 |
+| Epic             | Statut  | Branche             | Depend de |
+| ---------------- | ------- | ------------------- | --------- |
+| 1 - Foundation   | TERMINE | `feat/foundation`   | -         |
+| 2 - Auth         | TERMINE | `feat/auth`         | 1         |
+| 3 - Calendar     | TERMINE | `feat/calendar`     | 2         |
+| 4 - Integrations | A FAIRE | `feat/integrations` | 2         |
+| 5 - Scheduler    | A FAIRE | `feat/scheduler`    | 3, 4      |
+| 6 - Analytics    | A FAIRE | `feat/analytics`    | 4, 5      |
+| 7 - Polish       | A FAIRE | `feat/polish`       | 6         |
 
 ---
 
@@ -85,6 +85,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ## Plan de Test - Epic 2 : Auth & Comptes
 
 ### Prerequis
+
 - [ ] Epic 1 fonctionne
 - [ ] Serveur de dev lance (`pnpm dev`)
 - [ ] Tunnel HTTPS lance (`pnpm run dev:tunnel`)
@@ -94,35 +95,42 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ### Scenarios
 
 #### Login
+
 1. Aller sur `https://dev-scheduler.palawi.fr` sans session -> redirection vers `/login`
 2. Page /login visible avec formulaire de connexion
 3. Se connecter -> redirection vers /calendar
 
 #### Protection des routes
+
 1. Acceder a /calendar sans etre connecte -> redirection vers /login
 2. Acceder a /calendar connecte -> page affichee
 
 #### Connexion YouTube (Google)
+
 1. /settings/platforms -> carte YouTube affichee, statut "Non connecte"
 2. Cliquer "Connecter" -> redirection vers Google OAuth
 3. Autoriser -> redirection vers l'app, carte YouTube passe a "Connecte"
 4. Nom et avatar de la chaine YouTube visibles sur la carte
 
 #### Connexion Instagram, TikTok et X
+
 1. /settings/platforms -> cartes visibles, statut "Non connecte"
 2. Cliquer "Connecter" sur chaque plateforme
 3. Autoriser -> retour sur l'app, carte de la plateforme passe a "Connecte"
 4. Nom/avatar du compte plateforme visibles quand l'API les renvoie
 
 #### Deconnexion d'un compte
+
 1. Cliquer "Deconnecter" sur un compte connecte
 2. Le compte passe a "Non connecte" sans rechargement de page
 
 #### Securite
+
 1. Appeler GET /api/platforms sans etre connecte -> reponse 401
 2. Appeler DELETE /api/platforms/instagram d'un autre utilisateur -> reponse 403 ou 404
 
 ### Points de vigilance
+
 - Les tokens OAuth doivent etre visibles dans Prisma Studio (ConnectedPlatform)
 - Pas de token visible dans les reponses API ou dans les logs du navigateur
 - Les callbacks OAuth doivent utiliser le domaine HTTPS tunnel, pas `localhost`
@@ -130,7 +138,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 3 : Calendrier & Gestion des Posts — A FAIRE
+## Epic 3 : Calendrier & Gestion des Posts — TERMINE
 
 **Branche :** `feat/calendar`
 **Depend de :** Epic 2 (merge sur `dev`)
@@ -138,21 +146,23 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ### Sous-etapes
 
-- [ ] **3.1** API CRUD posts (`GET`, `POST`, `PATCH`, `DELETE`) avec validation Zod
+- [x] **3.0** Mettre tout les textes UI français à jour pour qu'ils aient les accents corrects sur les mots etc...
+  - `feat(ui): add accented french interface copy`
+- [x] **3.1** API CRUD posts (`GET`, `POST`, `PATCH`, `DELETE`) avec validation Zod
   - `feat(posts): add post crud api routes with zod validation`
-- [ ] **3.2** API upload media vers R2 + suppression
+- [x] **3.2** API upload media vers R2 + suppression
   - `feat(upload): add media upload and delete api routes`
-- [ ] **3.3** TanStack Query setup + hooks posts (`usePosts`, `useCreatePost`, etc.)
+- [x] **3.3** TanStack Query setup + hooks posts (`usePosts`, `useCreatePost`, etc.)
   - `feat(posts): add react query hooks for post management`
-- [ ] **3.4** Calendrier FullCalendar interactif (drag-and-drop, vues mois/semaine/jour)
+- [x] **3.4** Calendrier FullCalendar interactif (drag-and-drop, vues mois/semaine/jour)
   - `feat(calendar): add interactive fullcalendar with post events`
-- [ ] **3.5** Formulaire de creation de post (React Hook Form + Zod + modale)
+- [x] **3.5** Formulaire de creation de post (React Hook Form + Zod + modale)
   - `feat(posts): add post creation form with platform selector`
-- [ ] **3.6** Upload de medias dans le formulaire (drag-and-drop + preview + R2)
+- [x] **3.6** Upload de medias dans le formulaire (drag-and-drop + preview + R2)
   - `feat(posts): add media uploader with r2 integration`
-- [ ] **3.7** Composant evenement post sur le calendrier (icones + couleurs par statut)
+- [x] **3.7** Composant evenement post sur le calendrier (icones + couleurs par statut)
   - `feat(calendar): add post event component with status colors`
-- [ ] **3.8** Page `/posts` : liste avec filtres + actions (editer, publier, supprimer)
+- [x] **3.8** Page `/posts` : liste avec filtres + actions (editer, publier, supprimer)
   - `feat(posts): add posts list page with filters and actions`
 
 ### Plan de Test - Epic 3
@@ -161,6 +171,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ## Plan de Test - Epic 3 : Calendrier & Posts
 
 ### Prerequis
+
 - [ ] Epic 2 fonctionne
 - [ ] Au moins un compte social connecte
 - [ ] Worker demarre
@@ -168,12 +179,14 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ### Scenarios
 
 #### Calendrier
+
 1. /calendar -> le calendrier s'affiche (vue mois par defaut)
 2. Boutons de navigation mois precedent/suivant fonctionnent
 3. Switcher vers vue semaine et vue jour
 4. Cliquer sur un jour vide -> modale de creation de post s'ouvre avec la date pre-remplie
 
 #### Creation d'un post
+
 1. Ouvrir la modale de creation
 2. Remplir titre + caption
 3. Selectionner une plateforme connectee (non-connectee grisee/absente)
@@ -182,21 +195,25 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 6. Dans Prisma Studio : verifier que le post est en base avec statut SCHEDULED
 
 #### Upload de medias
+
 1. Dans la modale, uploader une image
 2. Preview visible sous la zone d'upload
 3. Supprimer le media -> disparait de la preview
 4. Dans Cloudflare R2 (ou logs) : verifier l'upload et la suppression
 
 #### Drag-and-drop
+
 1. Glisser un post sur le calendrier vers une autre date
 2. Post mis a jour a la nouvelle date (verifier dans Prisma Studio)
 
 #### Page /posts
+
 1. /posts -> liste des posts visibles
 2. Filtre par statut "Planifie" -> seuls les posts schedules affiches
 3. Bouton "Supprimer" -> post retire de la liste et du calendrier
 
 ### Points de vigilance
+
 - Les plateformes non connectees ne doivent pas apparaitre comme options de selection
 - Un post sans date reste en DRAFT, un post avec date future passe a SCHEDULED
 ```
@@ -232,39 +249,46 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ## Plan de Test - Epic 4 : Integrations de Publication
 
 ### Prerequis
+
 - [ ] Comptes sociaux connectes et tokens valides
 - [ ] Pour TikTok : sandbox active si pas de vrai compte
 
 ### Scenarios
 
 #### Publication YouTube
+
 1. Creer un post avec une video, selectionner YouTube
 2. Cliquer "Publier maintenant"
 3. Verifier dans YouTube Studio que la video est en ligne
 4. Dans Prisma Studio : PostPlatform.status = PUBLISHED, platformPostId rempli
 
 #### Publication Instagram
+
 1. Creer un post avec une image, selectionner Instagram
 2. Publier maintenant
 3. Verifier sur Instagram que le post est publie
 
 #### Publication X
+
 1. Creer un post texte (ou avec image), selectionner X
 2. Publier maintenant
 3. Verifier le tweet sur X.com
 
 #### Gestion d'erreur
+
 1. Deconnecter un compte depuis les parametres
 2. Tenter de publier sur ce compte
 3. L'UI doit afficher une erreur claire (non une erreur generique)
 4. Le post sur les autres plateformes doit continuer normalement
 
 #### Annulation
+
 1. Creer un post schedule dans 10 minutes
 2. Cliquer "Annuler" -> statut passe a CANCELLED
 3. Attendre l'heure de publication -> rien ne se publie
 
 ### Points de vigilance
+
 - Les tokens expires doivent declencher un refresh automatique, pas une erreur
 - Une erreur sur une plateforme ne doit pas bloquer les autres plateformes du meme post
 ```
@@ -296,35 +320,41 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ## Plan de Test - Epic 5 : Moteur de Planification
 
 ### Prerequis
+
 - [ ] Worker demarre (`pnpm worker:dev`)
 - [ ] Comptes sociaux connectes
 
 ### Scenarios
 
 #### Publication automatique
+
 1. Creer un post schedule dans 2 minutes
 2. Attendre 2 minutes
 3. Dans Prisma Studio : Post.status = PUBLISHED, PostPlatform.publishedAt rempli
 4. Verifier sur la plateforme que le post est en ligne
 
 #### Reprogrammation
+
 1. Creer un post schedule dans 5 minutes
 2. Le modifier pour le planifier dans 10 minutes
 3. Attendre 5 minutes -> rien ne se publie
 4. Attendre encore 5 minutes -> post publie
 
 #### Annulation
+
 1. Creer un post schedule dans 3 minutes
 2. Annuler -> statut CANCELLED
 3. Attendre 3 minutes -> rien ne se publie (verifier les logs du worker)
 
 #### Gestion d'echec
+
 1. Simuler un token invalide (modifier manuellement en base)
 2. Laisser le post se publier a l'heure prevue
 3. Apres 3 tentatives : Post.status = FAILED
 4. L'UI affiche un indicateur d'erreur
 
 ### Points de vigilance
+
 - Les logs du worker doivent indiquer chaque job traite
 - Si le worker redémarre pendant un job, le job doit etre reessaye
 ```
@@ -360,33 +390,40 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ## Plan de Test - Epic 6 : Analytique
 
 ### Prerequis
+
 - [ ] Des posts publies existent (avec platformPostId rempli)
 - [ ] Tokens valides pour la lecture des stats
 
 ### Scenarios
 
 #### Synchro manuelle
+
 1. /analytics -> cliquer "Synchroniser"
 2. Attendre la fin -> les stats se mettent a jour
 3. Dans Prisma Studio : des entrees PostAnalytics creees
 
 #### Affichage des KPIs
+
 1. /analytics -> 4 cartes KPI visibles avec des valeurs numeriques
 2. Changer le filtre de periode (7j / 30j) -> les valeurs changent
 
 #### Graphique d'engagement
+
 1. Graphique lineaire visible avec des donnees
 2. Survol d'un point -> tooltip avec les valeurs du jour
 
 #### Stats par plateforme
+
 1. Une carte par plateforme active visible
 2. Les chiffres correspondent a ceux visibles sur les plateformes reelles (approximatif, les APIs ont un delai)
 
 #### Tableau de performance
+
 1. Tableau trié par vues (decroissant) par defaut
 2. Cliquer sur une colonne -> tri fonctionne
 
 ### Points de vigilance
+
 - Si une plateforme n'a pas de stats, afficher 0 et non une erreur
 - Les periodes sans publication doivent afficher 0 sur le graphique, pas de trou
 ```
@@ -426,30 +463,36 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 ### Scenarios
 
 #### Etats de chargement
+
 1. Recharger /calendar avec une connexion lente (DevTools: throttle 3G)
 2. Des skeletons doivent apparaitre avant le contenu
 3. Cliquer "Publier" -> le bouton affiche un spinner, puis un toast de succes/erreur
 
 #### Etats vides
+
 1. Supprimer tous les posts
 2. /calendar -> message clair, bouton "Creer un post"
 3. /analytics sans donnees -> message clair, pas d'erreur
 
 #### Mobile
+
 1. Redimensionner le navigateur a 375px de large
 2. La sidebar se replie (ou devient un drawer accessible)
 3. Le calendrier est scrollable horizontalement
 4. Les formulaires sont utilisables sans zoom
 
 #### Build de production
+
 1. `pnpm build` -> aucune erreur TypeScript ou de build
 2. `pnpm start` -> l'app fonctionne comme en dev
 
 #### Validation des variables d'environnement
+
 1. Retirer une variable requise de .env.local
 2. `pnpm dev` -> erreur claire au demarrage indiquant la variable manquante
 
 ### Points de vigilance
+
 - Verifier que `pnpm build` n'a aucun warning de type "missing key" ou "image optimization"
 - Sur mobile, aucun texte ne doit etre tronque involontairement
 ```
