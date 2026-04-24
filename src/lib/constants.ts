@@ -14,6 +14,9 @@ export const PLATFORM_COLORS: Record<Platform, string> = {
   TWITTER: '#1DA1F2',
 }
 
+export const TWITTER_API_COST_NOTICE =
+  'La publication via X utilise des crédits API payants.'
+
 export const POST_STATUS_LABELS: Record<PostStatus, string> = {
   DRAFT: 'Brouillon',
   SCHEDULED: 'Planifié',

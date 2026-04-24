@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { Platform } from '@/types'
-import { PLATFORM_LABELS, PLATFORM_COLORS } from '@/lib/constants'
+import { PLATFORM_LABELS, PLATFORM_COLORS, TWITTER_API_COST_NOTICE } from '@/lib/constants'
 
 interface ConnectedAccount {
   id: string
@@ -69,7 +70,7 @@ export function PlatformConnectionCard({
           {PLATFORM_INITIALS[platform]}
         </div>
 
-        <div className="flex flex-1 flex-col gap-0.5">
+        <div className="flex flex-1 flex-col gap-1">
           <span className="text-sm font-medium">{PLATFORM_LABELS[platform]}</span>
           {account ? (
             <div className="flex items-center gap-2">
@@ -90,6 +91,12 @@ export function PlatformConnectionCard({
             </div>
           ) : (
             <span className="text-muted-foreground text-xs">Non connecté</span>
+          )}
+          {platform === 'TWITTER' && (
+            <span className="flex items-center gap-1 text-xs text-amber-700">
+              <AlertTriangle className="h-3 w-3" />
+              {TWITTER_API_COST_NOTICE}
+            </span>
           )}
         </div>
 
