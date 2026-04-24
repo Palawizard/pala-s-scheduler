@@ -55,7 +55,18 @@ export function getPublicUrl(key: string): string {
 
 export function getAbsolutePublicUrl(key: string): string {
   const publicUrl = getPublicUrl(key)
-  return new URL(publicUrl, process.env.NEXTAUTH_URL ?? 'http://localhost:3000').toString()
+  const appOrigin = new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000')
+
+  try {
+    const url = new URL(publicUrl)
+    // If the stored URL is localhost but the app is exposed via tunnel, use the tunnel origin
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      return new URL(url.pathname + url.search, appOrigin).toString()
+    }
+    return url.toString()
+  } catch {
+    return new URL(publicUrl, appOrigin).toString()
+  }
 }
 
 export function extractKeyFromUrl(url: string): string {

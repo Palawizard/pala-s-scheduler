@@ -12,6 +12,15 @@ type RouteContext = {
   params: Promise<{ id: string }>
 }
 
+function isLocalhostUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1'
+  } catch {
+    return false
+  }
+}
+
 function checkPlatformRequirements(
   platform: Platform,
   contentType: PostContentType | null,
@@ -33,7 +42,7 @@ function checkPlatformRequirements(
   }
 
   if (platform === 'TIKTOK') {
-    if (!hasVideo) return 'TikTok nécessite une vidéo'
+    if (!hasVideo) return 'Notre intégration TikTok ne supporte que les vidéos pour l\'instant'
     if (media[0] && media[0].size > 4 * 1024 * 1024 * 1024) {
       return 'La vidéo dépasse la limite de 4 Go de TikTok'
     }
@@ -44,6 +53,11 @@ function checkPlatformRequirements(
       if (!hasVideo) return 'Un Reel Instagram nécessite une vidéo'
     } else {
       if (!hasImage) return 'Un post Instagram nécessite une image'
+    }
+    // Instagram fetches media by URL — a localhost URL is not accessible from their servers
+    const mediaUrl = media[0]?.publicUrl ?? ''
+    if (isLocalhostUrl(mediaUrl)) {
+      return 'Instagram ne peut pas accéder aux médias en localhost — lancez le tunnel HTTPS (pnpm dev:tunnel) et assurez-vous que NEXTAUTH_URL pointe vers le tunnel'
     }
   }
 

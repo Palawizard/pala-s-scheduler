@@ -114,6 +114,14 @@ export function MediaUploader({ value, onChange }: MediaUploaderProps) {
                   className="h-28 w-full bg-cover bg-center"
                   style={{ backgroundImage: `url(${url})` }}
                 />
+              ) : url.match(/\.(mp4|mov|avi|webm|mkv|m4v)(\?|$)/i) ? (
+                <video
+                  src={url}
+                  className="h-28 w-full object-cover"
+                  controls={false}
+                  muted
+                  preload="metadata"
+                />
               ) : (
                 <div className="bg-muted flex h-28 items-center justify-center">
                   <ImageIcon className="text-muted-foreground h-6 w-6" />
