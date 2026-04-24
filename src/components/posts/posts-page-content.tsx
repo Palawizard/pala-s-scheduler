@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Edit, Send, Trash2 } from 'lucide-react'
+import { AlertCircle, Edit, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { PostForm } from '@/components/posts/post-form'
@@ -58,8 +58,23 @@ export function PostsPageContent() {
 
   async function handlePublish(post: PostView) {
     try {
-      await publishPost.mutateAsync(post.id)
-      toast.success('Publication lancée')
+      const updated = await publishPost.mutateAsync(post.id)
+      const failedPlatforms = updated.platforms.filter((p) => p.status === 'FAILED')
+      const successPlatforms = updated.platforms.filter((p) => p.status === 'PUBLISHED')
+
+      if (successPlatforms.length > 0 && failedPlatforms.length === 0) {
+        toast.success('Publication réussie sur toutes les plateformes')
+      } else if (successPlatforms.length > 0 && failedPlatforms.length > 0) {
+        toast.warning(
+          `Publié sur ${successPlatforms.length} plateforme(s), échec sur ${failedPlatforms.length}`
+        )
+      } else {
+        for (const failed of failedPlatforms) {
+          toast.error(failed.errorMessage ?? `Échec sur ${PLATFORM_LABELS[failed.platform]}`, {
+            duration: 8000,
+          })
+        }
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Publication impossible')
     }
@@ -135,6 +150,18 @@ export function PostsPageContent() {
                     </span>
                   ))}
                 </div>
+                {post.platforms.some((p) => p.status === 'FAILED' && p.errorMessage) && (
+                  <div className="mt-2 space-y-1">
+                    {post.platforms
+                      .filter((p) => p.status === 'FAILED' && p.errorMessage)
+                      .map((p) => (
+                        <div key={p.id} className="flex items-start gap-1.5 text-xs text-red-600">
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          <span>{p.errorMessage}</span>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex shrink-0 gap-2">
