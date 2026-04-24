@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MediaUploader } from '@/components/posts/media-uploader'
 import { PlatformSelector } from '@/components/posts/platform-selector'
 import { useCreatePost } from '@/hooks/use-posts'
 import { PLATFORMS } from '@/types'
@@ -15,6 +16,7 @@ const postFormSchema = z.object({
   title: z.string().trim().min(1, 'Le titre est requis').max(160),
   caption: z.string().trim().max(2200).optional(),
   scheduledAt: z.string().optional(),
+  mediaUrls: z.array(z.string().url()).max(10),
   platforms: z.array(z.enum(PLATFORMS)).min(1, 'Sélectionnez au moins une plateforme'),
 })
 
@@ -41,6 +43,7 @@ export function PostForm({ initialDate, onSuccess }: PostFormProps) {
       title: '',
       caption: '',
       scheduledAt: formatDateTimeLocal(initialDate),
+      mediaUrls: [],
       platforms: [],
     },
   })
@@ -50,6 +53,8 @@ export function PostForm({ initialDate, onSuccess }: PostFormProps) {
       await createPost.mutateAsync({
         title: values.title,
         caption: values.caption || null,
+        mediaUrls: values.mediaUrls,
+        thumbnailUrl: values.mediaUrls[0] ?? null,
         scheduledAt: values.scheduledAt ? new Date(values.scheduledAt).toISOString() : null,
         platforms: values.platforms,
       })
@@ -93,6 +98,15 @@ export function PostForm({ initialDate, onSuccess }: PostFormProps) {
           Date
         </label>
         <Input id="post-date" type="datetime-local" {...form.register('scheduledAt')} />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Médias</label>
+        <Controller
+          control={form.control}
+          name="mediaUrls"
+          render={({ field }) => <MediaUploader value={field.value} onChange={field.onChange} />}
+        />
       </div>
 
       <div className="space-y-2">
