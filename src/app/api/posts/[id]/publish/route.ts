@@ -176,7 +176,7 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
 
 const TIKTOK_ERROR_CODES: Record<string, string> = {
   unaudited_client_can_only_post_to_private_accounts:
-    'Application TikTok non approuvée — en mode développement, définissez la visibilité sur "Privé" pour pouvoir publier',
+    'Application TikTok non approuvée — pour tester, passez votre compte TikTok en "Compte privé" dans l\'app TikTok (Profil → Paramètres → Confidentialité)',
   spam_risk_too_many_posts:
     'Trop de publications récentes — attendez quelques heures avant de réessayer',
   spam_risk_user_banned_from_posting:

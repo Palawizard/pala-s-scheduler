@@ -163,6 +163,7 @@ async function initTikTokUpload(
     throw new Error('TikTok nécessite une vidéo.')
   }
 
+  const privacyLevel = toTikTokPrivacy(payload.visibility)
   const response = await fetch(TIKTOK_PUBLISH_INIT, {
     method: 'POST',
     headers: {
@@ -172,7 +173,7 @@ async function initTikTokUpload(
     body: JSON.stringify({
       post_info: {
         title: getTikTokTitle(payload),
-        privacy_level: toTikTokPrivacy(payload.visibility),
+        privacy_level: privacyLevel,
         disable_duet: false,
         disable_comment: false,
         disable_stitch: false,
