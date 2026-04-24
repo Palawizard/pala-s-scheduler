@@ -150,5 +150,9 @@ body {
 
 .fc .fc-event {
   border-radius: 0.375rem;
-  padding: 0.0625rem 0.25rem;
+  padding: 0.125rem 0.25rem;
+}
+
+.fc .fc-event-main {
+  min-width: 0;
 }

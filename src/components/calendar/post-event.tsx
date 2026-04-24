@@ -2,6 +2,7 @@
 
 import { AlertCircle, CheckCircle2, Clock, FileText, Loader2, XCircle } from 'lucide-react'
 
+import { PostPreview } from '@/components/posts/post-preview'
 import type { PostView } from '@/hooks/use-posts'
 import { PLATFORM_LABELS, POST_STATUS_COLORS, POST_STATUS_LABELS } from '@/lib/constants'
 import type { PostStatus } from '@/types'
@@ -25,6 +26,7 @@ export function PostEvent({ post }: PostEventProps) {
 
   return (
     <div className="flex min-w-0 items-center gap-1.5">
+      <PostPreview post={post} compact />
       <span
         className={`flex h-4 w-4 shrink-0 items-center justify-center rounded ${POST_STATUS_COLORS[post.status]}`}
       >

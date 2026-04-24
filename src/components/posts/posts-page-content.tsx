@@ -7,6 +7,7 @@ import { Edit, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { PostForm } from '@/components/posts/post-form'
+import { PostPreview } from '@/components/posts/post-preview'
 import { PostStatusBadge } from '@/components/posts/post-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -88,6 +89,7 @@ export function PostsPageContent() {
         {posts.map((post) => (
           <Card key={post.id}>
             <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center">
+              <PostPreview post={post} />
               <div className="min-w-0 flex-1">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <h2 className="truncate text-sm font-medium">
