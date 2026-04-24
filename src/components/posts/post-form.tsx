@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MediaUploader } from '@/components/posts/media-uploader'
 import { PlatformSelector } from '@/components/posts/platform-selector'
-import { useCreatePost } from '@/hooks/use-posts'
+import { type PostView, useCreatePost, useUpdatePost } from '@/hooks/use-posts'
 import { PLATFORMS } from '@/types'
 
 const postFormSchema = z.object({
@@ -24,6 +24,7 @@ type PostFormValues = z.infer<typeof postFormSchema>
 
 type PostFormProps = {
   initialDate?: Date | null
+  post?: PostView
   onSuccess?: () => void
 }
 
@@ -35,34 +36,46 @@ function formatDateTimeLocal(date: Date | null | undefined): string {
   return localDate.toISOString().slice(0, 16)
 }
 
-export function PostForm({ initialDate, onSuccess }: PostFormProps) {
+export function PostForm({ initialDate, post, onSuccess }: PostFormProps) {
   const createPost = useCreatePost()
+  const updatePost = useUpdatePost()
+  const pending = createPost.isPending || updatePost.isPending
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
-      title: '',
-      caption: '',
-      scheduledAt: formatDateTimeLocal(initialDate),
-      mediaUrls: [],
-      platforms: [],
+      title: post?.title ?? '',
+      caption: post?.caption ?? '',
+      scheduledAt: post?.scheduledAt
+        ? formatDateTimeLocal(new Date(post.scheduledAt))
+        : formatDateTimeLocal(initialDate),
+      mediaUrls: post?.mediaUrls ?? [],
+      platforms: post?.platforms.map((item) => item.platform) ?? [],
     },
   })
 
   async function handleSubmit(values: PostFormValues) {
     try {
-      await createPost.mutateAsync({
+      const payload = {
         title: values.title,
         caption: values.caption || null,
         mediaUrls: values.mediaUrls,
         thumbnailUrl: values.mediaUrls[0] ?? null,
         scheduledAt: values.scheduledAt ? new Date(values.scheduledAt).toISOString() : null,
         platforms: values.platforms,
-      })
-      toast.success('Publication créée')
+      }
+
+      if (post) {
+        await updatePost.mutateAsync({ id: post.id, payload })
+        toast.success('Publication modifiée')
+      } else {
+        await createPost.mutateAsync(payload)
+        toast.success('Publication créée')
+      }
+
       form.reset()
       onSuccess?.()
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Création impossible')
+      toast.error(error instanceof Error ? error.message : 'Enregistrement impossible')
     }
   }
 
@@ -124,8 +137,8 @@ export function PostForm({ initialDate, onSuccess }: PostFormProps) {
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="submit" disabled={createPost.isPending}>
-          {createPost.isPending ? 'Enregistrement...' : 'Enregistrer'}
+        <Button type="submit" disabled={pending}>
+          {pending ? 'Enregistrement...' : 'Enregistrer'}
         </Button>
       </div>
     </form>
