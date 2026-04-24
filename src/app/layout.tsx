@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Pala's Scheduler",
-  description: 'Planification et publication sur les reseaux sociaux',
+  description: 'Planification et publication sur les réseaux sociaux',
 }
 
 export default function RootLayout({

@@ -9,7 +9,7 @@ const navItems = [
   { href: '/calendar', label: 'Calendrier', icon: CalendarDays },
   { href: '/posts', label: 'Publications', icon: FileText },
   { href: '/analytics', label: 'Analytiques', icon: BarChart3 },
-  { href: '/settings', label: 'Parametres', icon: Settings },
+  { href: '/settings', label: 'Paramètres', icon: Settings },
 ]
 
 export function Sidebar() {

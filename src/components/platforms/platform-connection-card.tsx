@@ -80,16 +80,16 @@ export function PlatformConnectionCard({
                 </AvatarFallback>
               </Avatar>
               <span className="text-muted-foreground text-xs">
-                {account.platformUsername ?? 'Compte connecte'}
+                {account.platformUsername ?? 'Compte connecté'}
               </span>
               {isExpired && (
                 <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] text-red-700">
-                  Expire
+                  Expiré
                 </span>
               )}
             </div>
           ) : (
-            <span className="text-muted-foreground text-xs">Non connecte</span>
+            <span className="text-muted-foreground text-xs">Non connecté</span>
           )}
         </div>
 
@@ -100,7 +100,7 @@ export function PlatformConnectionCard({
             onClick={handleDisconnect}
             disabled={loading}
           >
-            Deconnecter
+            Déconnecter
           </Button>
         ) : (
           <Button size="sm" onClick={handleConnect} disabled={loading}>

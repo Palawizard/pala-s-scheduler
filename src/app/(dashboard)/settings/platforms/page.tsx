@@ -18,18 +18,18 @@ const AUTH_URL_MAP: Record<Platform, string> = {
 }
 
 const SUCCESS_MESSAGES: Record<string, string> = {
-  youtube: 'YouTube connecte avec succes',
-  instagram: 'Instagram connecte avec succes',
-  tiktok: 'TikTok connecte avec succes',
-  twitter: 'X connecte avec succes',
+  youtube: 'YouTube connecté avec succès',
+  instagram: 'Instagram connecté avec succès',
+  tiktok: 'TikTok connecté avec succès',
+  twitter: 'X connecté avec succès',
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
-  access_denied: 'Connexion annulee',
-  invalid_state: 'Erreur de securite, veuillez reessayer',
+  access_denied: 'Connexion annulée',
+  invalid_state: 'Erreur de sécurité, veuillez réessayer',
   missing_code: 'Code d\'autorisation manquant',
-  missing_verifier: 'Erreur PKCE, veuillez reessayer',
-  token_exchange: 'Echec de la connexion au compte',
+  missing_verifier: 'Erreur PKCE, veuillez réessayer',
+  token_exchange: 'Échec de la connexion au compte',
 }
 
 function PlatformsSettingsContent() {
@@ -42,7 +42,7 @@ function PlatformsSettingsContent() {
     const error = searchParams.get('error')
 
     if (success) {
-      toast.success(SUCCESS_MESSAGES[success] ?? 'Compte connecte avec succes')
+      toast.success(SUCCESS_MESSAGES[success] ?? 'Compte connecté avec succès')
       router.replace('/settings/platforms')
     } else if (error) {
       toast.error(ERROR_MESSAGES[error] ?? 'Une erreur est survenue')
@@ -69,10 +69,10 @@ function PlatformsSettingsContent() {
   const handleDisconnect = useCallback(async (platform: Platform) => {
     const res = await fetch(`/api/platforms/${platform.toLowerCase()}`, { method: 'DELETE' })
     if (!res.ok) {
-      toast.error('Echec de la deconnexion')
+      toast.error('Échec de la déconnexion')
       return
     }
-    toast.success(`${PLATFORM_LABELS[platform]} deconnecte`)
+    toast.success(`${PLATFORM_LABELS[platform]} déconnecté`)
     refetch()
   }, [refetch])
 
@@ -83,7 +83,7 @@ function PlatformsSettingsContent() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Comptes connectes</h1>
+        <h1 className="text-xl font-semibold">Comptes connectés</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Connectez vos comptes pour planifier et publier du contenu.
         </p>

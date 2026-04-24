@@ -18,7 +18,7 @@ export async function DELETE(
 ) {
   const user = await getCurrentUser()
   if (!user) {
-    return NextResponse.json({ error: 'Non autorise' }, { status: 401 })
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
   const { platform } = await params
@@ -32,7 +32,7 @@ export async function DELETE(
   })
 
   if (deleted.count === 0) {
-    return NextResponse.json({ error: 'Compte non trouve' }, { status: 404 })
+    return NextResponse.json({ error: 'Compte non trouvé' }, { status: 404 })
   }
 
   return NextResponse.json({ data: { success: true } })
