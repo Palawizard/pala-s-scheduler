@@ -1,0 +1,92 @@
+import { Prisma } from '@prisma/client'
+import { NextRequest, NextResponse } from 'next/server'
+
+import { getCurrentUser } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { createPostSchema, postQuerySchema } from '@/lib/posts/schemas'
+import { postInclude, serializePost } from '@/lib/posts/serialize'
+
+function getPostStatus(scheduledAt: string | null | undefined): 'DRAFT' | 'SCHEDULED' {
+  return scheduledAt ? 'SCHEDULED' : 'DRAFT'
+}
+
+export async function GET(request: NextRequest) {
+  const user = await getCurrentUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  }
+
+  const rawQuery = Object.fromEntries(request.nextUrl.searchParams.entries())
+  const parsed = postQuerySchema.safeParse(rawQuery)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const where: Prisma.PostWhereInput = {
+    userId: user.id,
+    status: parsed.data.status,
+    scheduledAt: {
+      gte: parsed.data.from ? new Date(parsed.data.from) : undefined,
+      lte: parsed.data.to ? new Date(parsed.data.to) : undefined,
+    },
+    platforms: parsed.data.platform
+      ? { some: { platform: parsed.data.platform } }
+      : undefined,
+  }
+
+  const posts = await db.post.findMany({
+    where,
+    include: postInclude,
+    orderBy: [{ scheduledAt: 'asc' }, { createdAt: 'desc' }],
+  })
+
+  return NextResponse.json({ data: posts.map(serializePost) })
+}
+
+export async function POST(request: NextRequest) {
+  const user = await getCurrentUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  }
+
+  const body = (await request.json().catch(() => null)) as unknown
+  const parsed = createPostSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const connectedPlatforms = await db.connectedPlatform.findMany({
+    where: {
+      userId: user.id,
+      isActive: true,
+      platform: { in: parsed.data.platforms },
+    },
+    select: { id: true, platform: true },
+  })
+
+  if (connectedPlatforms.length !== parsed.data.platforms.length) {
+    return NextResponse.json({ error: 'Plateforme non connectée' }, { status: 400 })
+  }
+
+  const post = await db.post.create({
+    data: {
+      userId: user.id,
+      title: parsed.data.title ?? null,
+      caption: parsed.data.caption ?? null,
+      hashtags: parsed.data.hashtags,
+      mediaUrls: parsed.data.mediaUrls,
+      thumbnailUrl: parsed.data.thumbnailUrl ?? null,
+      scheduledAt: parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null,
+      status: getPostStatus(parsed.data.scheduledAt),
+      platforms: {
+        create: connectedPlatforms.map((connectedPlatform) => ({
+          platform: connectedPlatform.platform,
+          connectedPlatformId: connectedPlatform.id,
+        })),
+      },
+    },
+    include: postInclude,
+  })
+
+  return NextResponse.json({ data: serializePost(post) }, { status: 201 })
+}
