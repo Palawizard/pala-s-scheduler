@@ -100,6 +100,16 @@ async function deletePost(id: string): Promise<{ success: boolean }> {
   return readJsonResponse<{ success: boolean }>(response)
 }
 
+async function publishPost(id: string): Promise<PostView> {
+  const response = await fetch(`/api/posts/${id}/publish`, { method: 'POST' })
+  return readJsonResponse<PostView>(response)
+}
+
+async function cancelPost(id: string): Promise<PostView> {
+  const response = await fetch(`/api/posts/${id}/cancel`, { method: 'POST' })
+  return readJsonResponse<PostView>(response)
+}
+
 export function usePosts(filters?: PostsFilters) {
   return useQuery({
     queryKey: ['posts', filters],
@@ -144,6 +154,30 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: deletePost,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    },
+  })
+}
+
+export function usePublishPost() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: publishPost,
+    onSuccess: (post) => {
+      queryClient.setQueryData(['posts', post.id], post)
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    },
+  })
+}
+
+export function useCancelPost() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: cancelPost,
+    onSuccess: (post) => {
+      queryClient.setQueryData(['posts', post.id], post)
       queryClient.invalidateQueries({ queryKey: ['posts'] })
     },
   })

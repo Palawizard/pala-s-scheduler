@@ -17,7 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useDeletePost, usePosts, type PostView } from '@/hooks/use-posts'
+import {
+  useCancelPost,
+  useDeletePost,
+  usePosts,
+  usePublishPost,
+  type PostView,
+} from '@/hooks/use-posts'
 import { PLATFORM_LABELS, POST_STATUS_LABELS } from '@/lib/constants'
 import { PLATFORMS, POST_STATUSES, type Platform, type PostStatus } from '@/types'
 
@@ -36,6 +42,8 @@ export function PostsPageContent() {
   }
   const { data: posts = [], isLoading } = usePosts(filters)
   const deletePost = useDeletePost()
+  const publishPost = usePublishPost()
+  const cancelPost = useCancelPost()
 
   async function handleDelete(post: PostView) {
     if (!window.confirm('Supprimer cette publication ?')) return
@@ -45,6 +53,24 @@ export function PostsPageContent() {
       toast.success('Publication supprimée')
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Suppression impossible')
+    }
+  }
+
+  async function handlePublish(post: PostView) {
+    try {
+      await publishPost.mutateAsync(post.id)
+      toast.success('Publication lancée')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Publication impossible')
+    }
+  }
+
+  async function handleCancel(post: PostView) {
+    try {
+      await cancelPost.mutateAsync(post.id)
+      toast.success('Publication annulée')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Annulation impossible')
     }
   }
 
@@ -113,9 +139,22 @@ export function PostsPageContent() {
                   <Edit className="h-4 w-4" />
                   Éditer
                 </Button>
-                <Button variant="outline" size="sm" disabled>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePublish(post)}
+                  disabled={publishPost.isPending || post.status === 'PUBLISHING' || post.status === 'PUBLISHED'}
+                >
                   <Send className="h-4 w-4" />
                   Publier
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCancel(post)}
+                  disabled={cancelPost.isPending || post.status === 'PUBLISHING' || post.status === 'PUBLISHED'}
+                >
+                  Annuler
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleDelete(post)}>
                   <Trash2 className="h-4 w-4" />
