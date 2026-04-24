@@ -7,6 +7,7 @@ import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import { toast } from 'sonner'
 
+import { PostEvent } from '@/components/calendar/post-event'
 import { usePosts, useUpdatePost } from '@/hooks/use-posts'
 import { PLATFORM_COLORS } from '@/lib/constants'
 
@@ -71,6 +72,7 @@ export function SchedulerCalendar({ onDateClick }: SchedulerCalendarProps) {
         events={events}
         dateClick={handleDateClick}
         eventDrop={handleEventDrop}
+        eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
         buttonText={{
           today: 'Aujourd’hui',
           month: 'Mois',
