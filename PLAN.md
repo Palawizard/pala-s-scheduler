@@ -11,7 +11,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | 1 - Foundation   | TERMINE | `feat/foundation`   | -         |
 | 2 - Auth         | TERMINE | `feat/auth`         | 1         |
 | 3 - Calendar     | TERMINE | `feat/calendar`     | 2         |
-| 4 - Integrations | A FAIRE | `feat/integrations` | 2         |
+| 4 - Integrations | TERMINE | `feat/integrations` | 2         |
 | 5 - Scheduler    | A FAIRE | `feat/scheduler`    | 3, 4      |
 | 6 - Analytics    | A FAIRE | `feat/analytics`    | 4, 5      |
 | 7 - Polish       | A FAIRE | `feat/polish`       | 6         |
@@ -220,7 +220,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 4 : Integrations de Publication — A FAIRE
+## Epic 4 : Integrations de Publication — TERMINE
 
 **Branche :** `feat/integrations`
 **Depend de :** Epic 2 (merge sur `dev`)
@@ -228,19 +228,19 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ### Sous-etapes
 
-- [ ] **4.1** Interface `PlatformPublisher` + types `PublishPayload` et `PublishResult`
+- [x] **4.1** Interface `PlatformPublisher` + types `PublishPayload` et `PublishResult`
   - `feat(platforms): define platform publisher interface and types`
-- [ ] **4.2** Publication YouTube (resumable upload + refresh token)
+- [x] **4.2** Publication YouTube (resumable upload + refresh token)
   - `feat(youtube): implement video upload via youtube data api v3`
-- [ ] **4.3** Publication Instagram (container media + refresh token 60j)
+- [x] **4.3** Publication Instagram (container media + refresh token 60j)
   - `feat(instagram): implement content publishing via instagram graph api`
-- [ ] **4.4** Publication TikTok (polling statut upload asynchrone)
+- [x] **4.4** Publication TikTok (polling statut upload asynchrone)
   - `feat(tiktok): implement video upload via tiktok content posting api`
-- [ ] **4.5** Publication X/Twitter (chunked media + tweet + refresh token)
+- [x] **4.5** Publication X/Twitter (chunked media + tweet + refresh token)
   - `feat(twitter): implement tweet and media posting via x api v2`
-- [ ] **4.6** Route `POST /api/posts/[id]/publish` (publication immediate multi-plateforme)
+- [x] **4.6** Route `POST /api/posts/[id]/publish` (publication immediate multi-plateforme)
   - `feat(posts): add immediate publish route with per-platform status`
-- [ ] **4.7** Route `POST /api/posts/[id]/cancel`
+- [x] **4.7** Route `POST /api/posts/[id]/cancel`
   - `feat(posts): add post cancellation route`
 
 ### Plan de Test - Epic 4
