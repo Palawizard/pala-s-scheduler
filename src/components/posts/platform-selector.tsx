@@ -4,7 +4,7 @@ import { Check } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { usePlatforms } from '@/hooks/use-platforms'
-import { PLATFORM_LABELS } from '@/lib/constants'
+import { PLATFORM_LABELS, TWITTER_API_COST_NOTICE } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import type { Platform } from '@/types'
 
@@ -39,16 +39,20 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
         const selected = value.includes(account.platform)
 
         return (
-          <Button
-            key={account.platform}
-            type="button"
-            variant="outline"
-            className={cn('justify-between', selected && 'border-foreground')}
-            onClick={() => togglePlatform(account.platform)}
-          >
-            <span>{PLATFORM_LABELS[account.platform]}</span>
-            {selected && <Check className="h-4 w-4" />}
-          </Button>
+          <div key={account.platform} className="space-y-1">
+            <Button
+              type="button"
+              variant="outline"
+              className={cn('w-full justify-between', selected && 'border-foreground')}
+              onClick={() => togglePlatform(account.platform)}
+            >
+              <span>{PLATFORM_LABELS[account.platform]}</span>
+              {selected && <Check className="h-4 w-4" />}
+            </Button>
+            {account.platform === 'TWITTER' && (
+              <p className="text-xs leading-snug text-amber-700">{TWITTER_API_COST_NOTICE}</p>
+            )}
+          </div>
         )
       })}
     </div>
