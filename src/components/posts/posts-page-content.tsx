@@ -133,7 +133,11 @@ export function PostsPageContent() {
             <DialogTitle>Modifier la publication</DialogTitle>
           </DialogHeader>
           {editingPost && (
-            <PostForm post={editingPost} onSuccess={() => setEditingPost(null)} />
+            <PostForm
+              post={editingPost}
+              onCancel={() => setEditingPost(null)}
+              onSuccess={() => setEditingPost(null)}
+            />
           )}
         </DialogContent>
       </Dialog>

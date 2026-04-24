@@ -1,6 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -10,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { MediaUploader } from '@/components/posts/media-uploader'
 import { PlatformSelector } from '@/components/posts/platform-selector'
 import { type PostView, useCreatePost, useUpdatePost } from '@/hooks/use-posts'
+import { deleteUploadedMedia } from '@/lib/media-client'
 import { PLATFORMS } from '@/types'
 
 const postFormSchema = z.object({
@@ -25,6 +27,7 @@ type PostFormValues = z.infer<typeof postFormSchema>
 type PostFormProps = {
   initialDate?: Date | null
   post?: PostView
+  onCancel?: () => void
   onSuccess?: () => void
 }
 
@@ -36,10 +39,13 @@ function formatDateTimeLocal(date: Date | null | undefined): string {
   return localDate.toISOString().slice(0, 16)
 }
 
-export function PostForm({ initialDate, post, onSuccess }: PostFormProps) {
+export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormProps) {
   const createPost = useCreatePost()
   const updatePost = useUpdatePost()
   const pending = createPost.isPending || updatePost.isPending
+  const savedRef = useRef(false)
+  const mediaUrlsRef = useRef<string[]>(post?.mediaUrls ?? [])
+  const initialMediaUrlsRef = useRef(new Set(post?.mediaUrls ?? []))
   const form = useForm<PostFormValues>({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
@@ -52,6 +58,24 @@ export function PostForm({ initialDate, post, onSuccess }: PostFormProps) {
       platforms: post?.platforms.map((item) => item.platform) ?? [],
     },
   })
+  const watchedMediaUrls = form.watch('mediaUrls')
+
+  useEffect(() => {
+    mediaUrlsRef.current = watchedMediaUrls
+  }, [watchedMediaUrls])
+
+  useEffect(() => {
+    const initialMediaUrls = initialMediaUrlsRef.current
+
+    return () => {
+      if (savedRef.current) return
+
+      const orphanMediaUrls = mediaUrlsRef.current.filter(
+        (url) => !initialMediaUrls.has(url)
+      )
+      Promise.allSettled(orphanMediaUrls.map(deleteUploadedMedia))
+    }
+  }, [])
 
   async function handleSubmit(values: PostFormValues) {
     try {
@@ -72,11 +96,26 @@ export function PostForm({ initialDate, post, onSuccess }: PostFormProps) {
         toast.success('Publication créée')
       }
 
+      savedRef.current = true
       form.reset()
       onSuccess?.()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Enregistrement impossible')
     }
+  }
+
+  async function handleCancel() {
+    const orphanMediaUrls = form
+      .getValues('mediaUrls')
+      .filter((url) => !initialMediaUrlsRef.current.has(url))
+
+    await Promise.allSettled(orphanMediaUrls.map(deleteUploadedMedia))
+    mediaUrlsRef.current = initialMediaUrlsRef.current.size > 0
+      ? Array.from(initialMediaUrlsRef.current)
+      : []
+    savedRef.current = true
+
+    onCancel?.()
   }
 
   return (
@@ -137,6 +176,11 @@ export function PostForm({ initialDate, post, onSuccess }: PostFormProps) {
       </div>
 
       <div className="flex justify-end gap-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={handleCancel} disabled={pending}>
+            Annuler
+          </Button>
+        )}
         <Button type="submit" disabled={pending}>
           {pending ? 'Enregistrement...' : 'Enregistrer'}
         </Button>

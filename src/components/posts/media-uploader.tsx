@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { ALLOWED_MEDIA_TYPES } from '@/lib/constants'
+import { deleteUploadedMedia } from '@/lib/media-client'
 import { cn } from '@/lib/utils'
 
 type MediaUploaderProps = {
@@ -36,18 +37,6 @@ async function uploadMedia(file: File): Promise<string> {
   return body.data.url
 }
 
-async function deleteMedia(url: string): Promise<void> {
-  const response = await fetch('/api/upload', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
-  })
-
-  if (!response.ok) {
-    throw new Error('Suppression impossible')
-  }
-}
-
 export function MediaUploader({ value, onChange }: MediaUploaderProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [dragging, setDragging] = useState(false)
@@ -72,7 +61,7 @@ export function MediaUploader({ value, onChange }: MediaUploaderProps) {
 
   async function handleRemove(url: string) {
     try {
-      await deleteMedia(url)
+      await deleteUploadedMedia(url)
       onChange(value.filter((item) => item !== url))
       toast.success('Média supprimé')
     } catch (error) {

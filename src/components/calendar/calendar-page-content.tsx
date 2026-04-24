@@ -53,6 +53,7 @@ export function CalendarPageContent() {
               key={selectedPost?.id ?? selectedDate?.toISOString() ?? 'new'}
               initialDate={selectedDate}
               post={selectedPost ?? undefined}
+              onCancel={() => setOpen(false)}
               onSuccess={() => setOpen(false)}
             />
           </DialogContent>

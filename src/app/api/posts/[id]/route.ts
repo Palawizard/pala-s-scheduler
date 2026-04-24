@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { updatePostSchema } from '@/lib/posts/schemas'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
+import { deletePostMedia } from '@/lib/posts/media-cleanup'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -114,13 +115,17 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   }
 
   const { id } = await params
-  const deleted = await db.post.deleteMany({
+  const post = await db.post.findFirst({
     where: { id, userId: user.id },
+    select: { id: true, mediaUrls: true },
   })
 
-  if (deleted.count === 0) {
+  if (!post) {
     return NextResponse.json({ error: 'Publication introuvable' }, { status: 404 })
   }
+
+  await db.post.delete({ where: { id: post.id } })
+  await deletePostMedia(post.mediaUrls)
 
   return NextResponse.json({ data: { success: true } })
 }
