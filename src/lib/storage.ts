@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 const DEFAULT_STORAGE_ROOT = path.join(process.cwd(), 'storage')
@@ -44,8 +44,18 @@ export async function readFileFromStorage(key: string): Promise<Buffer> {
   return readFile(resolveStoragePath(key))
 }
 
+export async function getFileSizeFromStorage(key: string): Promise<number> {
+  const fileStat = await stat(resolveStoragePath(key))
+  return fileStat.size
+}
+
 export function getPublicUrl(key: string): string {
   return `${getPublicBaseUrl()}/${key}`
+}
+
+export function getAbsolutePublicUrl(key: string): string {
+  const publicUrl = getPublicUrl(key)
+  return new URL(publicUrl, process.env.NEXTAUTH_URL ?? 'http://localhost:3000').toString()
 }
 
 export function extractKeyFromUrl(url: string): string {
