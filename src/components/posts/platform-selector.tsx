@@ -6,15 +6,18 @@ import { Button } from '@/components/ui/button'
 import { usePlatforms } from '@/hooks/use-platforms'
 import {
   PLATFORM_LABELS,
+  PLATFORM_VISIBILITY_OPTIONS,
   POST_CONTENT_TYPE_LABELS,
+  POST_VISIBILITY_LABELS,
   TWITTER_API_COST_NOTICE,
 } from '@/lib/constants'
 import { cn } from '@/lib/utils'
-import type { Platform, PostContentType } from '@/types'
+import type { Platform, PostContentType, PostVisibility } from '@/types'
 
 export type PlatformSelection = {
   platform: Platform
   contentType?: PostContentType | null
+  visibility?: PostVisibility | null
 }
 
 type PlatformSelectorProps = {
@@ -33,6 +36,11 @@ function getDefaultContentType(platform: Platform): PostContentType | null {
   return null
 }
 
+function getDefaultVisibility(platform: Platform): PostVisibility | null {
+  if (platform === 'YOUTUBE' || platform === 'TIKTOK') return 'PUBLIC'
+  return null
+}
+
 export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
   const { platforms, isLoading } = usePlatforms()
   const activePlatforms = platforms.filter((platform) => platform.isActive)
@@ -42,12 +50,25 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
       onChange(value.filter((item) => item.platform !== platform))
       return
     }
-    onChange([...value, { platform, contentType: getDefaultContentType(platform) }])
+    onChange([
+      ...value,
+      {
+        platform,
+        contentType: getDefaultContentType(platform),
+        visibility: getDefaultVisibility(platform),
+      },
+    ])
   }
 
   function updateContentType(platform: Platform, contentType: PostContentType) {
     onChange(
       value.map((item) => (item.platform === platform ? { ...item, contentType } : item))
+    )
+  }
+
+  function updateVisibility(platform: Platform, visibility: PostVisibility) {
+    onChange(
+      value.map((item) => (item.platform === platform ? { ...item, visibility } : item))
     )
   }
 
@@ -64,6 +85,8 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
       {activePlatforms.map((account) => {
         const selected = value.find((item) => item.platform === account.platform)
         const contentTypeOptions = CONTENT_TYPE_OPTIONS[account.platform]
+
+        const visibilityOptions = PLATFORM_VISIBILITY_OPTIONS[account.platform]
 
         return (
           <div key={account.platform} className="space-y-1">
@@ -94,6 +117,25 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
                     onClick={() => updateContentType(account.platform, contentType)}
                   >
                     {POST_CONTENT_TYPE_LABELS[contentType]}
+                  </Button>
+                ))}
+              </div>
+            )}
+            {selected && visibilityOptions && (
+              <div className="grid grid-cols-3 gap-1">
+                {visibilityOptions.map((visibility) => (
+                  <Button
+                    key={visibility}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'h-8 px-2 text-xs',
+                      selected.visibility === visibility && 'border-foreground bg-accent'
+                    )}
+                    onClick={() => updateVisibility(account.platform, visibility)}
+                  >
+                    {POST_VISIBILITY_LABELS[visibility]}
                   </Button>
                 ))}
               </div>

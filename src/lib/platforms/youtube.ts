@@ -105,6 +105,12 @@ async function refreshYoutubeToken(platform: ConnectedPlatform): Promise<Connect
   })
 }
 
+function toYoutubePrivacy(visibility: PublishPayload['visibility']): string {
+  if (visibility === 'PRIVATE') return 'private'
+  if (visibility === 'UNLISTED') return 'unlisted'
+  return 'public'
+}
+
 async function uploadYoutubeVideo(
   payload: PublishPayload,
   platform: ConnectedPlatform
@@ -128,7 +134,7 @@ async function uploadYoutubeVideo(
       categoryId: '22',
     },
     status: {
-      privacyStatus: 'public',
+      privacyStatus: toYoutubePrivacy(payload.visibility),
       selfDeclaredMadeForKids: false,
     },
   }

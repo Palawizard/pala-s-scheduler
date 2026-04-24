@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { updatePostSchema } from '@/lib/posts/schemas'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
 import { deletePostMedia } from '@/lib/posts/media-cleanup'
-import type { Platform, PostContentType } from '@/types'
+import type { Platform, PostContentType, PostVisibility } from '@/types'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -18,6 +18,11 @@ function getPostStatus(scheduledAt: string | null | undefined): 'DRAFT' | 'SCHED
 function getDefaultContentType(platform: Platform): PostContentType | null {
   if (platform === 'YOUTUBE') return 'YOUTUBE_VIDEO'
   if (platform === 'INSTAGRAM') return 'INSTAGRAM_POST'
+  return null
+}
+
+function getDefaultVisibility(platform: Platform): PostVisibility | null {
+  if (platform === 'YOUTUBE' || platform === 'TIKTOK') return 'PUBLIC'
   return null
 }
 
@@ -101,13 +106,17 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         status: parsed.data.status ?? getPostStatus(nextScheduledAt?.toISOString()),
         platforms: connectedPlatforms
           ? {
-              create: connectedPlatforms.map((connectedPlatform) => ({
-                platform: connectedPlatform.platform,
-                contentType:
-                  parsed.data.platforms?.find((item) => item.platform === connectedPlatform.platform)
-                    ?.contentType ?? getDefaultContentType(connectedPlatform.platform),
-                connectedPlatformId: connectedPlatform.id,
-              })),
+              create: connectedPlatforms.map((connectedPlatform) => {
+                const input = parsed.data.platforms?.find(
+                  (item) => item.platform === connectedPlatform.platform
+                )
+                return {
+                  platform: connectedPlatform.platform,
+                  contentType: input?.contentType ?? getDefaultContentType(connectedPlatform.platform),
+                  visibility: input?.visibility ?? getDefaultVisibility(connectedPlatform.platform),
+                  connectedPlatformId: connectedPlatform.id,
+                }
+              }),
             }
           : undefined,
       },

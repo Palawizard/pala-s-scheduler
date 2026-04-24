@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { createPostSchema, postQuerySchema } from '@/lib/posts/schemas'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
-import type { Platform, PostContentType } from '@/types'
+import type { Platform, PostContentType, PostVisibility } from '@/types'
 
 function getPostStatus(scheduledAt: string | null | undefined): 'DRAFT' | 'SCHEDULED' {
   return scheduledAt ? 'SCHEDULED' : 'DRAFT'
@@ -14,6 +14,11 @@ function getPostStatus(scheduledAt: string | null | undefined): 'DRAFT' | 'SCHED
 function getDefaultContentType(platform: Platform): PostContentType | null {
   if (platform === 'YOUTUBE') return 'YOUTUBE_VIDEO'
   if (platform === 'INSTAGRAM') return 'INSTAGRAM_POST'
+  return null
+}
+
+function getDefaultVisibility(platform: Platform): PostVisibility | null {
+  if (platform === 'YOUTUBE' || platform === 'TIKTOK') return 'PUBLIC'
   return null
 }
 
@@ -86,13 +91,17 @@ export async function POST(request: NextRequest) {
       scheduledAt: parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null,
       status: getPostStatus(parsed.data.scheduledAt),
       platforms: {
-        create: connectedPlatforms.map((connectedPlatform) => ({
-          platform: connectedPlatform.platform,
-          contentType:
-            parsed.data.platforms.find((item) => item.platform === connectedPlatform.platform)
-              ?.contentType ?? getDefaultContentType(connectedPlatform.platform),
-          connectedPlatformId: connectedPlatform.id,
-        })),
+        create: connectedPlatforms.map((connectedPlatform) => {
+          const input = parsed.data.platforms.find(
+            (item) => item.platform === connectedPlatform.platform
+          )
+          return {
+            platform: connectedPlatform.platform,
+            contentType: input?.contentType ?? getDefaultContentType(connectedPlatform.platform),
+            visibility: input?.visibility ?? getDefaultVisibility(connectedPlatform.platform),
+            connectedPlatformId: connectedPlatform.id,
+          }
+        }),
       },
     },
     include: postInclude,

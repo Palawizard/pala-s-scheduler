@@ -144,6 +144,12 @@ async function ensureTikTokToken(platform: ConnectedPlatform): Promise<Connected
   })
 }
 
+function toTikTokPrivacy(visibility: PublishPayload['visibility']): string {
+  if (visibility === 'PRIVATE') return 'SELF_ONLY'
+  if (visibility === 'FRIENDS_ONLY') return 'MUTUAL_FOLLOW_FRIENDS'
+  return 'PUBLIC_TO_EVERYONE'
+}
+
 function getTikTokTitle(payload: PublishPayload): string {
   return (payload.caption || payload.title || 'Publication').slice(0, 2200)
 }
@@ -166,7 +172,7 @@ async function initTikTokUpload(
     body: JSON.stringify({
       post_info: {
         title: getTikTokTitle(payload),
-        privacy_level: 'PUBLIC_TO_EVERYONE',
+        privacy_level: toTikTokPrivacy(payload.visibility),
         disable_duet: false,
         disable_comment: false,
         disable_stitch: false,

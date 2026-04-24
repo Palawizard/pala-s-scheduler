@@ -1,5 +1,5 @@
 import type { ConnectedPlatform } from '@prisma/client'
-import type { Platform, PostContentType } from '@/types'
+import type { Platform, PostContentType, PostVisibility } from '@/types'
 import { instagramPublisher } from '@/lib/platforms/instagram'
 import { tiktokPublisher } from '@/lib/platforms/tiktok'
 import { twitterPublisher } from '@/lib/platforms/twitter'
@@ -23,6 +23,7 @@ export type PublishPayload = {
   mediaUrls: string[]
   thumbnailUrl: string | null
   contentType: PostContentType | null
+  visibility: PostVisibility | null
   media: PublishMedia[]
 }
 

@@ -12,7 +12,7 @@ import { MediaUploader } from '@/components/posts/media-uploader'
 import { PlatformSelector, type PlatformSelection } from '@/components/posts/platform-selector'
 import { type PostView, useCreatePost, useUpdatePost } from '@/hooks/use-posts'
 import { deleteUploadedMedia } from '@/lib/media-client'
-import { PLATFORMS, POST_CONTENT_TYPES } from '@/types'
+import { PLATFORMS, POST_CONTENT_TYPES, POST_VISIBILITIES } from '@/types'
 
 const postFormSchema = z.object({
   title: z.string().trim().min(1, 'Le titre est requis').max(160),
@@ -24,6 +24,7 @@ const postFormSchema = z.object({
       z.object({
         platform: z.enum(PLATFORMS),
         contentType: z.enum(POST_CONTENT_TYPES).nullable().optional(),
+        visibility: z.enum(POST_VISIBILITIES).nullable().optional(),
       })
     )
     .min(1, 'Sélectionnez au moins une plateforme'),
@@ -65,6 +66,7 @@ export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormPro
       platforms: post?.platforms.map((item) => ({
         platform: item.platform,
         contentType: item.contentType,
+        visibility: item.visibility,
       })) ?? [],
     },
   })

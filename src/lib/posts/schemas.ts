@@ -1,10 +1,11 @@
 import { z } from 'zod'
 
-import { PLATFORMS, POST_CONTENT_TYPES, POST_STATUSES } from '@/types'
+import { PLATFORMS, POST_CONTENT_TYPES, POST_STATUSES, POST_VISIBILITIES } from '@/types'
 
 const platformSchema = z.enum(PLATFORMS)
 const postContentTypeSchema = z.enum(POST_CONTENT_TYPES)
 const postStatusSchema = z.enum(POST_STATUSES)
+const postVisibilitySchema = z.enum(POST_VISIBILITIES)
 
 const scheduledAtSchema = z
   .string()
@@ -22,6 +23,7 @@ const postPlatformInputSchema = z
   .object({
     platform: platformSchema,
     contentType: postContentTypeSchema.nullable().optional(),
+    visibility: postVisibilitySchema.nullable().optional(),
   })
   .superRefine((value, context) => {
     if (value.platform === 'YOUTUBE' && !value.contentType?.startsWith('YOUTUBE_')) {
@@ -45,6 +47,22 @@ const postPlatformInputSchema = z
         code: z.ZodIssueCode.custom,
         message: 'Format de plateforme invalide',
         path: ['contentType'],
+      })
+    }
+
+    if (value.visibility === 'UNLISTED' && value.platform !== 'YOUTUBE') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Non répertorié disponible uniquement sur YouTube',
+        path: ['visibility'],
+      })
+    }
+
+    if (value.visibility === 'FRIENDS_ONLY' && value.platform !== 'TIKTOK') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Amis uniquement disponible uniquement sur TikTok',
+        path: ['visibility'],
       })
     }
   })

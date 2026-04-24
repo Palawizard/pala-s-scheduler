@@ -2,12 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import type { Platform, PostContentType, PostStatus } from '@/types'
+import type { Platform, PostContentType, PostStatus, PostVisibility } from '@/types'
 
 export type PostPlatformView = {
   id: string
   platform: Platform
   contentType: PostContentType | null
+  visibility: PostVisibility | null
   status: 'PENDING' | 'PUBLISHING' | 'PUBLISHED' | 'FAILED'
   platformPostId: string | null
   errorMessage: string | null
@@ -52,6 +53,7 @@ export type PostPayload = {
 export type PostPlatformInput = {
   platform: Platform
   contentType?: PostContentType | null
+  visibility?: PostVisibility | null
 }
 
 function buildPostsUrl(filters?: PostsFilters): string {

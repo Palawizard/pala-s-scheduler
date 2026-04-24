@@ -101,6 +101,7 @@ model PostPlatform {
   postId              String
   platform            Platform
   contentType         PostContentType?
+  visibility          PostVisibility?
   connectedPlatformId String
   status              PostPlatformStatus @default(PENDING)
   platformPostId      String?
@@ -158,4 +159,11 @@ enum PostContentType {
   YOUTUBE_SHORT
   INSTAGRAM_POST
   INSTAGRAM_REEL
+}
+
+enum PostVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+  FRIENDS_ONLY
 }

@@ -22,6 +22,9 @@ export const POST_CONTENT_TYPES = [
 ] as const
 export type PostContentType = (typeof POST_CONTENT_TYPES)[number]
 
+export const POST_VISIBILITIES = ['PUBLIC', 'PRIVATE', 'UNLISTED', 'FRIENDS_ONLY'] as const
+export type PostVisibility = (typeof POST_VISIBILITIES)[number]
+
 export type ConnectedPlatform = {
   id: string
   platform: Platform
@@ -51,6 +54,7 @@ export type PostPlatformSummary = {
   id: string
   platform: Platform
   contentType: PostContentType | null
+  visibility: PostVisibility | null
   status: PostPlatformStatus
   platformPostId: string | null
   errorMessage: string | null
