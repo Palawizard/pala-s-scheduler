@@ -13,13 +13,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import type { PostView } from '@/hooks/use-posts'
 
 export function CalendarPageContent() {
   const [open, setOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedPost, setSelectedPost] = useState<PostView | null>(null)
 
   function openCreateDialog(date?: Date) {
     setSelectedDate(date ?? null)
+    setSelectedPost(null)
+    setOpen(true)
+  }
+
+  function openEditDialog(post: PostView) {
+    setSelectedDate(null)
+    setSelectedPost(post)
     setOpen(true)
   }
 
@@ -36,13 +45,20 @@ export function CalendarPageContent() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Créer une publication</DialogTitle>
+              <DialogTitle>
+                {selectedPost ? 'Modifier la publication' : 'Créer une publication'}
+              </DialogTitle>
             </DialogHeader>
-            <PostForm initialDate={selectedDate} onSuccess={() => setOpen(false)} />
+            <PostForm
+              key={selectedPost?.id ?? selectedDate?.toISOString() ?? 'new'}
+              initialDate={selectedDate}
+              post={selectedPost ?? undefined}
+              onSuccess={() => setOpen(false)}
+            />
           </DialogContent>
         </Dialog>
       </div>
-      <SchedulerCalendar onDateClick={openCreateDialog} />
+      <SchedulerCalendar onDateClick={openCreateDialog} onPostClick={openEditDialog} />
     </>
   )
 }

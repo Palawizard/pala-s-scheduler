@@ -8,16 +8,18 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import { toast } from 'sonner'
 
 import { PostEvent } from '@/components/calendar/post-event'
-import { usePosts, useUpdatePost } from '@/hooks/use-posts'
+import { type PostView, usePosts, useUpdatePost } from '@/hooks/use-posts'
 import { PLATFORM_COLORS } from '@/lib/constants'
 
 type SchedulerCalendarProps = {
   onDateClick?: (date: Date) => void
+  onPostClick?: (post: PostView) => void
 }
 
 type EventDropInfo = Parameters<NonNullable<CalendarOptions['eventDrop']>>[0]
+type EventClickInfo = Parameters<NonNullable<CalendarOptions['eventClick']>>[0]
 
-export function SchedulerCalendar({ onDateClick }: SchedulerCalendarProps) {
+export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalendarProps) {
   const { data: posts = [], isLoading } = usePosts()
   const updatePost = useUpdatePost()
 
@@ -59,6 +61,11 @@ export function SchedulerCalendar({ onDateClick }: SchedulerCalendarProps) {
     onDateClick?.(dateClick.date)
   }
 
+  function handleEventClick(eventClick: EventClickInfo) {
+    const post = eventClick.event.extendedProps.post as PostView | undefined
+    if (post) onPostClick?.(post)
+  }
+
   return (
     <div className="min-h-0 flex-1 rounded-lg border bg-white p-3">
       <FullCalendar
@@ -71,6 +78,7 @@ export function SchedulerCalendar({ onDateClick }: SchedulerCalendarProps) {
         nowIndicator
         events={events}
         dateClick={handleDateClick}
+        eventClick={handleEventClick}
         eventDrop={handleEventDrop}
         eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
         buttonText={{
