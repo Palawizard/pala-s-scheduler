@@ -1,6 +1,5 @@
 'use client'
 
-import dayGridPlugin from '@fullcalendar/daygrid'
 import type { CalendarOptions } from '@fullcalendar/core'
 import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
 import FullCalendar from '@fullcalendar/react'
@@ -69,8 +68,8 @@ export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalenda
   return (
     <div className="min-h-0 flex-1 rounded-lg border bg-white p-3">
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
+        plugins={[timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
         locale="fr"
         height="100%"
         editable
@@ -83,14 +82,12 @@ export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalenda
         eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
         buttonText={{
           today: 'Aujourd’hui',
-          month: 'Mois',
           week: 'Semaine',
-          day: 'Jour',
         }}
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          right: '',
         }}
       />
       {isLoading && (
