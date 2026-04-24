@@ -108,12 +108,9 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
                   <Button
                     key={contentType}
                     type="button"
-                    variant="outline"
+                    variant={selected.contentType === contentType ? 'default' : 'outline'}
                     size="sm"
-                    className={cn(
-                      'h-8 px-2 text-xs',
-                      selected.contentType === contentType && 'border-foreground bg-accent'
-                    )}
+                    className="h-8 px-2 text-xs"
                     onClick={() => updateContentType(account.platform, contentType)}
                   >
                     {POST_CONTENT_TYPE_LABELS[contentType]}
@@ -127,12 +124,9 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
                   <Button
                     key={visibility}
                     type="button"
-                    variant="outline"
+                    variant={selected.visibility === visibility ? 'default' : 'outline'}
                     size="sm"
-                    className={cn(
-                      'h-8 px-2 text-xs',
-                      selected.visibility === visibility && 'border-foreground bg-accent'
-                    )}
+                    className="h-8 px-2 text-xs"
                     onClick={() => updateVisibility(account.platform, visibility)}
                   >
                     {POST_VISIBILITY_LABELS[visibility]}
