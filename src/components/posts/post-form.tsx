@@ -16,7 +16,7 @@ const postFormSchema = z.object({
   title: z.string().trim().min(1, 'Le titre est requis').max(160),
   caption: z.string().trim().max(2200).optional(),
   scheduledAt: z.string().optional(),
-  mediaUrls: z.array(z.string().url()).max(10),
+  mediaUrls: z.array(z.string()).max(10),
   platforms: z.array(z.enum(PLATFORMS)).min(1, 'Sélectionnez au moins une plateforme'),
 })
 

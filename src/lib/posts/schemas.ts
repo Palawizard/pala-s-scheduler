@@ -11,6 +11,12 @@ const scheduledAtSchema = z
   .nullable()
   .optional()
 
+const mediaUrlSchema = z
+  .string()
+  .refine((value) => value.startsWith('/api/media/') || z.string().url().safeParse(value).success, {
+    message: 'URL de média invalide',
+  })
+
 export const postQuerySchema = z.object({
   status: postStatusSchema.optional(),
   platform: platformSchema.optional(),
@@ -22,8 +28,8 @@ export const createPostSchema = z.object({
   title: z.string().trim().max(160).nullable().optional(),
   caption: z.string().trim().max(2200).nullable().optional(),
   hashtags: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
-  mediaUrls: z.array(z.string().url()).max(10).default([]),
-  thumbnailUrl: z.string().url().nullable().optional(),
+  mediaUrls: z.array(mediaUrlSchema).max(10).default([]),
+  thumbnailUrl: mediaUrlSchema.nullable().optional(),
   scheduledAt: scheduledAtSchema,
   platforms: z.array(platformSchema).max(PLATFORMS.length).default([]),
 })

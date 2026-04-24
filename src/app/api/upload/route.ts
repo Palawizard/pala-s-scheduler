@@ -6,7 +6,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { buildMediaKey, deleteFile, extractKeyFromUrl, uploadFile } from '@/lib/storage'
 
 const deleteUploadSchema = z.object({
-  url: z.string().url(),
+  url: z.string().min(1),
 })
 
 function isAllowedMediaType(type: string): boolean {
