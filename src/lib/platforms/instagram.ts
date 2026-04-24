@@ -113,9 +113,14 @@ async function createInstagramContainer(
 ): Promise<{ id: string; isVideo: boolean }> {
   const image = getFirstImageMedia(payload.media)
   const video = getFirstVideoMedia(payload.media)
-  const media = image ?? video
+  const publishAsReel = payload.contentType === 'INSTAGRAM_REEL'
+  const media = publishAsReel ? video : image
   if (!media) {
-    throw new Error('Instagram nécessite une image ou une vidéo.')
+    throw new Error(
+      publishAsReel
+        ? 'Un Reel Instagram nécessite une vidéo.'
+        : 'Un post Instagram nécessite une image.'
+    )
   }
 
   const body = new URLSearchParams({
@@ -123,7 +128,7 @@ async function createInstagramContainer(
     caption: payload.caption ?? payload.title ?? '',
   })
 
-  if (video && !image) {
+  if (publishAsReel) {
     body.set('media_type', 'REELS')
     body.set('video_url', media.publicUrl)
   } else {
@@ -144,7 +149,7 @@ async function createInstagramContainer(
     throw new Error('Instagram container response missing ID')
   }
 
-  return { id: data.id, isVideo: Boolean(video && !image) }
+  return { id: data.id, isVideo: publishAsReel }
 }
 
 async function waitForInstagramContainer(containerId: string, token: string): Promise<void> {

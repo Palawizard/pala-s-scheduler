@@ -48,6 +48,7 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
     hashtags: post.hashtags,
     mediaUrls: post.mediaUrls,
     thumbnailUrl: post.thumbnailUrl,
+    contentType: null,
     media,
   }
 
@@ -61,7 +62,7 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
 
     try {
       const result = await getPlatformClient(postPlatform.platform).publish(
-        payload,
+        { ...payload, contentType: postPlatform.contentType },
         postPlatform.connectedPlatform
       )
 

@@ -115,10 +115,15 @@ async function uploadYoutubeVideo(
     throw new Error('YouTube nécessite une vidéo.')
   }
 
+  const isShort = payload.contentType === 'YOUTUBE_SHORT'
+  const title = payload.title || 'Publication'
+  const description = payload.caption ?? ''
   const metadata = {
     snippet: {
-      title: payload.title || 'Publication',
-      description: payload.caption ?? '',
+      title: isShort && !title.toLowerCase().includes('#shorts') ? `${title} #Shorts` : title,
+      description: isShort && !description.toLowerCase().includes('#shorts')
+        ? `${description}\n\n#Shorts`.trim()
+        : description,
       tags: payload.hashtags,
       categoryId: '22',
     },

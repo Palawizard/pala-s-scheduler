@@ -5,6 +5,7 @@ const postWithPlatforms = {
     select: {
       id: true,
       platform: true,
+      contentType: true,
       status: true,
       platformPostId: true,
       errorMessage: true,
@@ -39,6 +40,7 @@ export function serializePost(post: PostWithPlatforms) {
     platforms: post.platforms.map((platform) => ({
       id: platform.id,
       platform: platform.platform,
+      contentType: platform.contentType,
       status: platform.status,
       platformPostId: platform.platformPostId,
       errorMessage: platform.errorMessage,

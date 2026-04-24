@@ -9,17 +9,24 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MediaUploader } from '@/components/posts/media-uploader'
-import { PlatformSelector } from '@/components/posts/platform-selector'
+import { PlatformSelector, type PlatformSelection } from '@/components/posts/platform-selector'
 import { type PostView, useCreatePost, useUpdatePost } from '@/hooks/use-posts'
 import { deleteUploadedMedia } from '@/lib/media-client'
-import { PLATFORMS } from '@/types'
+import { PLATFORMS, POST_CONTENT_TYPES } from '@/types'
 
 const postFormSchema = z.object({
   title: z.string().trim().min(1, 'Le titre est requis').max(160),
   caption: z.string().trim().max(2200).optional(),
   scheduledAt: z.string().optional(),
   mediaUrls: z.array(z.string()).max(10),
-  platforms: z.array(z.enum(PLATFORMS)).min(1, 'Sélectionnez au moins une plateforme'),
+  platforms: z
+    .array(
+      z.object({
+        platform: z.enum(PLATFORMS),
+        contentType: z.enum(POST_CONTENT_TYPES).nullable().optional(),
+      })
+    )
+    .min(1, 'Sélectionnez au moins une plateforme'),
 })
 
 type PostFormValues = z.infer<typeof postFormSchema>
@@ -55,7 +62,10 @@ export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormPro
         ? formatDateTimeLocal(new Date(post.scheduledAt))
         : formatDateTimeLocal(initialDate),
       mediaUrls: post?.mediaUrls ?? [],
-      platforms: post?.platforms.map((item) => item.platform) ?? [],
+      platforms: post?.platforms.map((item) => ({
+        platform: item.platform,
+        contentType: item.contentType,
+      })) ?? [],
     },
   })
   const watchedMediaUrls = form.watch('mediaUrls')
@@ -167,7 +177,10 @@ export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormPro
           control={form.control}
           name="platforms"
           render={({ field }) => (
-            <PlatformSelector value={field.value} onChange={field.onChange} />
+            <PlatformSelector
+              value={field.value as PlatformSelection[]}
+              onChange={field.onChange}
+            />
           )}
         />
         {form.formState.errors.platforms && (

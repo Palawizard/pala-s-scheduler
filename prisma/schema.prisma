@@ -100,6 +100,7 @@ model PostPlatform {
   id                  String             @id @default(cuid())
   postId              String
   platform            Platform
+  contentType         PostContentType?
   connectedPlatformId String
   status              PostPlatformStatus @default(PENDING)
   platformPostId      String?
@@ -150,4 +151,11 @@ enum PostPlatformStatus {
   PUBLISHING
   PUBLISHED
   FAILED
+}
+
+enum PostContentType {
+  YOUTUBE_VIDEO
+  YOUTUBE_SHORT
+  INSTAGRAM_POST
+  INSTAGRAM_REEL
 }

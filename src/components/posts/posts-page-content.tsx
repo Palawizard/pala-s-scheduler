@@ -24,7 +24,7 @@ import {
   usePublishPost,
   type PostView,
 } from '@/hooks/use-posts'
-import { PLATFORM_LABELS, POST_STATUS_LABELS } from '@/lib/constants'
+import { PLATFORM_LABELS, POST_CONTENT_TYPE_LABELS, POST_STATUS_LABELS } from '@/lib/constants'
 import { PLATFORMS, POST_STATUSES, type Platform, type PostStatus } from '@/types'
 
 function formatPostDate(date: string | null): string {
@@ -129,7 +129,10 @@ export function PostsPageContent() {
                 <div className="text-muted-foreground mt-2 flex flex-wrap gap-2 text-xs">
                   <span>{formatPostDate(post.scheduledAt)}</span>
                   {post.platforms.map((item) => (
-                    <span key={item.id}>{PLATFORM_LABELS[item.platform]}</span>
+                    <span key={item.id}>
+                      {PLATFORM_LABELS[item.platform]}
+                      {item.contentType ? ` ${POST_CONTENT_TYPE_LABELS[item.contentType]}` : ''}
+                    </span>
                   ))}
                 </div>
               </div>

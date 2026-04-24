@@ -1,4 +1,4 @@
-import type { Platform, PostStatus } from '@/types'
+import type { Platform, PostContentType, PostStatus } from '@/types'
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   YOUTUBE: 'YouTube',
@@ -16,6 +16,13 @@ export const PLATFORM_COLORS: Record<Platform, string> = {
 
 export const TWITTER_API_COST_NOTICE =
   'La publication via X utilise des crédits API payants.'
+
+export const POST_CONTENT_TYPE_LABELS: Record<PostContentType, string> = {
+  INSTAGRAM_POST: 'Post',
+  INSTAGRAM_REEL: 'Reel',
+  YOUTUBE_SHORT: 'Short',
+  YOUTUBE_VIDEO: 'Vidéo',
+}
 
 export const POST_STATUS_LABELS: Record<PostStatus, string> = {
   DRAFT: 'Brouillon',

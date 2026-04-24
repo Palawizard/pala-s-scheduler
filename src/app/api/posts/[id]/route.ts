@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { updatePostSchema } from '@/lib/posts/schemas'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
 import { deletePostMedia } from '@/lib/posts/media-cleanup'
+import type { Platform, PostContentType } from '@/types'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -12,6 +13,12 @@ type RouteContext = {
 
 function getPostStatus(scheduledAt: string | null | undefined): 'DRAFT' | 'SCHEDULED' {
   return scheduledAt ? 'SCHEDULED' : 'DRAFT'
+}
+
+function getDefaultContentType(platform: Platform): PostContentType | null {
+  if (platform === 'YOUTUBE') return 'YOUTUBE_VIDEO'
+  if (platform === 'INSTAGRAM') return 'INSTAGRAM_POST'
+  return null
 }
 
 export async function GET(_request: NextRequest, { params }: RouteContext) {
@@ -67,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         where: {
           userId: user.id,
           isActive: true,
-          platform: { in: parsed.data.platforms },
+          platform: { in: parsed.data.platforms.map((item) => item.platform) },
         },
         select: { id: true, platform: true },
       })
@@ -96,6 +103,9 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
           ? {
               create: connectedPlatforms.map((connectedPlatform) => ({
                 platform: connectedPlatform.platform,
+                contentType:
+                  parsed.data.platforms?.find((item) => item.platform === connectedPlatform.platform)
+                    ?.contentType ?? getDefaultContentType(connectedPlatform.platform),
                 connectedPlatformId: connectedPlatform.id,
               })),
             }

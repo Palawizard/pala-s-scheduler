@@ -4,7 +4,12 @@ import { AlertCircle, CheckCircle2, Clock, FileText, Loader2, XCircle } from 'lu
 
 import { PostPreview } from '@/components/posts/post-preview'
 import type { PostView } from '@/hooks/use-posts'
-import { PLATFORM_LABELS, POST_STATUS_COLORS, POST_STATUS_LABELS } from '@/lib/constants'
+import {
+  PLATFORM_LABELS,
+  POST_CONTENT_TYPE_LABELS,
+  POST_STATUS_COLORS,
+  POST_STATUS_LABELS,
+} from '@/lib/constants'
 import type { PostStatus } from '@/types'
 
 type PostEventProps = {
@@ -22,7 +27,13 @@ const STATUS_ICONS: Record<PostStatus, typeof FileText> = {
 
 export function PostEvent({ post }: PostEventProps) {
   const Icon = STATUS_ICONS[post.status]
-  const platforms = post.platforms.map((item) => PLATFORM_LABELS[item.platform]).join(', ')
+  const platforms = post.platforms
+    .map((item) =>
+      item.contentType
+        ? `${PLATFORM_LABELS[item.platform]} ${POST_CONTENT_TYPE_LABELS[item.contentType]}`
+        : PLATFORM_LABELS[item.platform]
+    )
+    .join(', ')
 
   return (
     <div className="flex min-w-0 items-center gap-1.5">
