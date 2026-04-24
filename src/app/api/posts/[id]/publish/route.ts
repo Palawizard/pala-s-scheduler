@@ -174,40 +174,96 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
   return NextResponse.json({ data: serializePost(updatedPost) })
 }
 
+const TIKTOK_ERROR_CODES: Record<string, string> = {
+  unaudited_client_can_only_post_to_private_accounts:
+    'Application TikTok non approuvée — en mode développement, définissez la visibilité sur "Privé" pour pouvoir publier',
+  spam_risk_too_many_posts:
+    'Trop de publications récentes — attendez quelques heures avant de réessayer',
+  spam_risk_user_banned_from_posting:
+    'Ce compte TikTok est banni de publication',
+  video_pull_failed:
+    "TikTok n'a pas pu recuperer la video — verifiez que l'URL est accessible publiquement",
+  video_size_check_failed:
+    'La vidéo ne respecte pas les contraintes de taille TikTok (9:16 recommandé, 1080p minimum)',
+  video_duration_check_failed:
+    'La durée de la vidéo est hors limites TikTok (15s–10min)',
+  access_token_invalid:
+    'Token TikTok invalide — reconnectez le compte dans les paramètres',
+  scope_not_authorized:
+    'Permissions TikTok insuffisantes — reconnectez le compte en autorisant toutes les permissions demandées',
+}
+
+const YOUTUBE_ERROR_CODES: Record<string, string> = {
+  uploadLimitExceeded: "Limite d'upload YouTube atteinte pour aujourd'hui",
+  forbidden: "Permissions YouTube insuffisantes — verifiez les droits de l'application Google",
+  quotaExceeded: 'Quota YouTube Data API dépassé (10 000 crédits/jour)',
+}
+
+const INSTAGRAM_ERROR_CODES: Record<string, string> = {
+  '10': "Permissions Instagram insuffisantes — verifiez les droits de l'application Meta",
+  '100': 'Paramètre invalide envoyé à Instagram',
+  '190': 'Token Instagram expiré ou invalide — reconnectez le compte dans les paramètres',
+  '368': 'Ce compte Instagram est temporairement restreint',
+}
+
 function extractReadableError(platform: Platform, raw: string): string {
   const label = PLATFORM_LABELS[platform]
 
-  // Try to parse JSON error bodies embedded in the message
-  const jsonMatch = raw.match(/\{.*\}/)
+  const jsonMatch = raw.match(/\{[\s\S]*\}/)
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>
+      const errorObj = parsed.error as Record<string, unknown> | undefined
+
+      if (platform === 'TIKTOK' && typeof errorObj?.code === 'string') {
+        const known = TIKTOK_ERROR_CODES[errorObj.code]
+        if (known) return `TikTok : ${known}`
+      }
+
+      if (platform === 'YOUTUBE') {
+        const errors = (parsed.error as Record<string, unknown> | undefined)?.errors
+        if (Array.isArray(errors)) {
+          const firstReason = (errors[0] as Record<string, unknown>)?.reason
+          if (typeof firstReason === 'string' && YOUTUBE_ERROR_CODES[firstReason]) {
+            return `YouTube : ${YOUTUBE_ERROR_CODES[firstReason]}`
+          }
+        }
+      }
+
+      if (platform === 'INSTAGRAM') {
+        const code = String(errorObj?.code ?? parsed.code ?? '')
+        if (INSTAGRAM_ERROR_CODES[code]) {
+          return `Instagram : ${INSTAGRAM_ERROR_CODES[code]}`
+        }
+      }
+
       const msg =
-        (parsed.error as Record<string, unknown> | undefined)?.message ??
-        (parsed.error as Record<string, unknown> | undefined)?.description ??
+        errorObj?.message ??
+        errorObj?.description ??
         parsed.message ??
         parsed.error_description
       if (typeof msg === 'string' && msg.length > 0) {
         return `${label} : ${msg}`
       }
     } catch {
-      // not parseable, fall through
+      // not JSON parseable, fall through to keyword detection
     }
   }
 
-  if (raw.includes('401') || raw.toLowerCase().includes('unauthorized') || raw.toLowerCase().includes('invalid token')) {
+  const lower = raw.toLowerCase()
+  if (raw.includes('401') || lower.includes('unauthorized') || lower.includes('invalid token')) {
     return `${label} : token invalide ou révoqué — reconnectez le compte dans les paramètres`
   }
-  if (raw.includes('403') || raw.toLowerCase().includes('forbidden') || raw.toLowerCase().includes('permission')) {
+  if (raw.includes('403') || lower.includes('forbidden') || lower.includes('permission denied')) {
     return `${label} : permissions insuffisantes — vérifiez les droits de l'application`
   }
-  if (raw.includes('429') || raw.toLowerCase().includes('rate limit')) {
+  if (raw.includes('429') || lower.includes('rate limit') || lower.includes('too many requests')) {
     return `${label} : limite de requêtes atteinte — réessayez dans quelques minutes`
   }
-  if (raw.toLowerCase().includes('quota')) {
+  if (lower.includes('quota')) {
     return `${label} : quota API dépassé pour aujourd'hui`
   }
-  if (raw.toLowerCase().includes('network') || raw.toLowerCase().includes('fetch failed')) {
+  if (lower.includes('network') || lower.includes('fetch failed') || lower.includes('econnrefused')) {
     return `${label} : erreur réseau — vérifiez la connexion du serveur`
   }
 
