@@ -12,6 +12,12 @@ type PostFormFooterProps = {
   scheduledAt: string | undefined
 }
 
+function formatScheduledAtDisplay(scheduledAt: string | undefined): string {
+  if (!scheduledAt) return 'Non planifié'
+
+  return formatDateTimeLocal(new Date(scheduledAt)).replace('T', ' ')
+}
+
 export function PostFormFooter({
   onCancel,
   onCancelClick,
@@ -30,7 +36,7 @@ export function PostFormFooter({
       <div className="flex items-center gap-2">
         <div className="hidden items-center gap-2 rounded-md border px-3 py-2 text-sm sm:flex">
           <Calendar className="h-4 w-4" />
-          {scheduledAt ? formatDateTimeLocal(new Date(scheduledAt)) : 'Non planifié'}
+          {formatScheduledAtDisplay(scheduledAt)}
         </div>
         <Button type="submit" disabled={pending}>
           {pending ? 'Enregistrement...' : 'Programmer'}
