@@ -1,4 +1,5 @@
 import type { ConnectedPlatform } from '@prisma/client'
+import sharp from 'sharp'
 
 import { db } from '@/lib/db'
 import type {
@@ -7,6 +8,7 @@ import type {
   PublishPayload,
   PublishResult,
 } from '@/lib/platforms'
+import { deleteFile, getAbsolutePublicUrl, uploadFile } from '@/lib/storage'
 
 const TIKTOK_AUTH = 'https://www.tiktok.com/v2/auth/authorize/'
 const TIKTOK_TOKEN = 'https://open.tiktokapis.com/v2/oauth/token/'
@@ -173,11 +175,37 @@ function getTikTokTitle(payload: PublishPayload): string {
 }
 
 function getTikTokPhotoTitle(payload: PublishPayload): string {
-  return (payload.title || 'Photo').slice(0, 90)
+  return (payload.caption || payload.title || 'Photo').slice(0, 90)
 }
 
-function getTikTokPhotoDescription(payload: PublishPayload): string {
-  return (payload.caption || payload.title || 'Publication').slice(0, 4000)
+// TikTok requires images to be at most 1080x1920px.
+// If the image exceeds these dimensions, resize it and upload a temporary copy to R2.
+async function resizeImageForTikTok(
+  image: PublishMedia
+): Promise<{ url: string; tempKey: string | null }> {
+  const TIKTOK_MAX_WIDTH = 1080
+  const TIKTOK_MAX_HEIGHT = 1920
+
+  const metadata = await sharp(image.buffer).metadata()
+  const { width = 0, height = 0 } = metadata
+
+  if (width <= TIKTOK_MAX_WIDTH && height <= TIKTOK_MAX_HEIGHT) {
+    return { url: image.publicUrl, tempKey: null }
+  }
+
+  console.log(`[TikTok] resizing image from ${width}x${height} to fit ${TIKTOK_MAX_WIDTH}x${TIKTOK_MAX_HEIGHT}`)
+
+  const resized = await sharp(image.buffer)
+    .resize(TIKTOK_MAX_WIDTH, TIKTOK_MAX_HEIGHT, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 90 })
+    .toBuffer()
+
+  const tempKey = image.key.replace(/(\.[^./]+)$/, '-tiktok.jpg')
+  await uploadFile(tempKey, resized, 'image/jpeg')
+  const url = getAbsolutePublicUrl(tempKey)
+
+  console.log(`[TikTok] resized image uploaded as ${tempKey}`)
+  return { url, tempKey }
 }
 
 async function initTikTokUpload(
@@ -236,36 +264,44 @@ async function initTikTokPhotoPost(
   payload: PublishPayload,
   platform: ConnectedPlatform,
   image: PublishMedia
-): Promise<{ publishId: string }> {
+): Promise<{ publishId: string; tempKey: string | null }> {
+  const { url: imageUrl, tempKey } = await resizeImageForTikTok(image)
+
+  const requestBody = {
+    post_info: {
+      title: getTikTokPhotoTitle(payload),
+      ...(payload.title ? { description: payload.title.slice(0, 4000) } : {}),
+      privacy_level: toTikTokPrivacy(payload.visibility),
+      disable_comment: false,
+      auto_add_music: true,
+    },
+    source_info: {
+      source: 'PULL_FROM_URL',
+      photo_cover_index: 0,
+      photo_images: [imageUrl],
+    },
+    post_mode: 'DIRECT_POST',
+    media_type: 'PHOTO',
+  }
+  console.log('[TikTok] photo init request:', JSON.stringify(requestBody, null, 2))
+
   const response = await fetch(TIKTOK_CONTENT_INIT, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${platform.accessToken}`,
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: JSON.stringify({
-      post_info: {
-        title: getTikTokPhotoTitle(payload),
-        description: getTikTokPhotoDescription(payload),
-        privacy_level: toTikTokPrivacy(payload.visibility),
-        disable_comment: false,
-        auto_add_music: true,
-      },
-      source_info: {
-        source: 'PULL_FROM_URL',
-        photo_cover_index: 0,
-        photo_images: [image.publicUrl],
-      },
-      post_mode: 'DIRECT_POST',
-      media_type: 'PHOTO',
-    }),
+    body: JSON.stringify(requestBody),
   })
 
+  const rawText = await response.text()
+  console.log(`[TikTok] photo init response (${response.status}):`, rawText)
+
   if (!response.ok) {
-    throw new Error(`TikTok photo publish init failed: ${await response.text()}`)
+    throw new Error(`TikTok photo publish init failed (${response.status}): ${rawText}`)
   }
 
-  const body = (await response.json()) as {
+  const body = JSON.parse(rawText) as {
     data?: { publish_id?: string }
     error?: { code?: string; message?: string }
   }
@@ -278,7 +314,7 @@ async function initTikTokPhotoPost(
     throw new Error('TikTok photo publish init response missing fields')
   }
 
-  return { publishId: body.data.publish_id }
+  return { publishId: body.data.publish_id, tempKey }
 }
 
 async function waitForTikTokPublish(platform: ConnectedPlatform, publishId: string): Promise<void> {
@@ -292,25 +328,33 @@ async function waitForTikTokPublish(platform: ConnectedPlatform, publishId: stri
       body: JSON.stringify({ publish_id: publishId }),
     })
 
+    const rawText = await response.text()
+
     if (!response.ok) {
-      throw new Error(`TikTok publish status failed: ${await response.text()}`)
+      console.error(`[TikTok] status poll failed (${response.status}):`, rawText)
+      throw new Error(`TikTok publish status failed: ${rawText}`)
     }
 
-    const body = (await response.json()) as {
-      data?: { status?: string }
+    const body = JSON.parse(rawText) as {
+      data?: { status?: string; fail_reason?: string }
       error?: { code?: string; message?: string }
     }
+
+    console.log(`[TikTok] status poll attempt ${attempt + 1}:`, JSON.stringify(body))
 
     if (body.error?.code && body.error.code !== 'ok') {
       throwTikTokApiError(body)
     }
 
     if (body.data?.status === 'PUBLISH_COMPLETE' || body.data?.status === 'SEND_TO_USER_INBOX') {
+      console.log('[TikTok] publish complete')
       return
     }
 
     if (body.data?.status === 'FAILED') {
-      throw new Error('TikTok n’a pas pu publier le média.')
+      const reason = body.data.fail_reason ?? 'raison inconnue'
+      console.error('[TikTok] publish FAILED, full body:', JSON.stringify(body))
+      throw new Error(`TikTok n'a pas pu publier le media. Raison : ${reason}`)
     }
 
     await new Promise((resolve) => setTimeout(resolve, 5000))
@@ -335,9 +379,13 @@ async function publishTikTok(
   }
 
   if (media.contentType.startsWith('image/')) {
-    const post = await initTikTokPhotoPost(payload, refreshedPlatform, media)
-    await waitForTikTokPublish(refreshedPlatform, post.publishId)
-    return { platformPostId: post.publishId }
+    const { publishId, tempKey } = await initTikTokPhotoPost(payload, refreshedPlatform, media)
+    try {
+      await waitForTikTokPublish(refreshedPlatform, publishId)
+    } finally {
+      if (tempKey) await deleteFile(tempKey).catch(() => {})
+    }
+    return { platformPostId: publishId }
   }
 
   if (!media.contentType.startsWith('video/')) {
