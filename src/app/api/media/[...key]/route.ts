@@ -13,6 +13,7 @@ const EXTENSION_TYPES: Record<string, string> = {
   '.mov': 'video/quicktime',
   '.mp4': 'video/mp4',
   '.png': 'image/png',
+  '.txt': 'text/plain; charset=utf-8',
   '.webm': 'video/webm',
   '.webp': 'image/webp',
 }
