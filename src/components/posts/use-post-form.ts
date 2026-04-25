@@ -121,8 +121,11 @@ export function usePostForm({ initialDate, onCancel, onSuccess, post }: UsePostF
   async function handleSubmit(values: PostFormValues) {
     try {
       const submitsToYoutube = values.platforms.some((item) => item.platform === 'YOUTUBE')
+      const submitsToTiktokPhoto = values.platforms.some(
+        (item) => item.platform === 'TIKTOK' && item.contentType === 'TIKTOK_PHOTO'
+      )
       const payload = {
-        title: submitsToYoutube ? values.title || null : null,
+        title: submitsToYoutube || submitsToTiktokPhoto ? values.title || null : null,
         caption: values.caption || null,
         mediaUrls: values.mediaUrls,
         thumbnailUrl: values.mediaUrls[0] ?? null,
@@ -196,5 +199,6 @@ export function usePostForm({ initialDate, onCancel, onSuccess, post }: UsePostF
     watchedTitle,
     youtubeSelection,
     hasYoutube: Boolean(youtubeSelection),
+    hasTiktok: Boolean(selectedPlatform(watchedPlatforms, 'TIKTOK')),
   }
 }

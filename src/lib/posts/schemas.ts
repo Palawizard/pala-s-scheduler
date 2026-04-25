@@ -42,7 +42,15 @@ const postPlatformInputSchema = z
       })
     }
 
-    if ((value.platform === 'TIKTOK' || value.platform === 'TWITTER') && value.contentType) {
+    if (value.platform === 'TIKTOK' && value.contentType && !value.contentType.startsWith('TIKTOK_')) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Format TikTok invalide',
+        path: ['contentType'],
+      })
+    }
+
+    if (value.platform === 'TWITTER' && value.contentType) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Format de plateforme invalide',

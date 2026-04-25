@@ -19,6 +19,8 @@ export const POST_CONTENT_TYPES = [
   'YOUTUBE_SHORT',
   'INSTAGRAM_POST',
   'INSTAGRAM_REEL',
+  'TIKTOK_VIDEO',
+  'TIKTOK_PHOTO',
 ] as const
 export type PostContentType = (typeof POST_CONTENT_TYPES)[number]
 

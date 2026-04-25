@@ -20,6 +20,7 @@ type PostSettingsSectionsProps = {
   errorMessages: string[]
   instagramSelection: PlatformSelection | null
   onVisibilityChange: (platform: Platform, visibility: PostVisibility) => void
+  tiktokDescriptionRegister: UseFormRegisterReturn | null
   tiktokSelection: PlatformSelection | null
   youtubeSelection: PlatformSelection | null
 }
@@ -29,6 +30,7 @@ export function PostSettingsSections({
   errorMessages,
   instagramSelection,
   onVisibilityChange,
+  tiktokDescriptionRegister,
   tiktokSelection,
   youtubeSelection,
 }: PostSettingsSectionsProps) {
@@ -62,6 +64,7 @@ export function PostSettingsSections({
 
       {tiktokSelection && (
         <TiktokSettingsCard
+          descriptionRegister={tiktokDescriptionRegister}
           open={openSections.tiktok}
           onToggle={() => toggleSection('tiktok')}
           onVisibilityChange={onVisibilityChange}

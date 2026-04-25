@@ -159,6 +159,8 @@ enum PostContentType {
   YOUTUBE_SHORT
   INSTAGRAM_POST
   INSTAGRAM_REEL
+  TIKTOK_VIDEO
+  TIKTOK_PHOTO
 }
 
 enum PostVisibility {

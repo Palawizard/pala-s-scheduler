@@ -18,6 +18,7 @@ function getPostStatus(scheduledAt: string | null | undefined): 'DRAFT' | 'SCHED
 function getDefaultContentType(platform: Platform): PostContentType | null {
   if (platform === 'YOUTUBE') return 'YOUTUBE_VIDEO'
   if (platform === 'INSTAGRAM') return 'INSTAGRAM_POST'
+  if (platform === 'TIKTOK') return 'TIKTOK_VIDEO'
   return null
 }
 

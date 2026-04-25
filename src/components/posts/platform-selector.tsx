@@ -21,12 +21,14 @@ type PlatformSelectorProps = {
 
 const CONTENT_TYPE_OPTIONS: Partial<Record<Platform, PostContentType[]>> = {
   INSTAGRAM: ['INSTAGRAM_POST', 'INSTAGRAM_REEL'],
+  TIKTOK: ['TIKTOK_VIDEO', 'TIKTOK_PHOTO'],
   YOUTUBE: ['YOUTUBE_VIDEO', 'YOUTUBE_SHORT'],
 }
 
 function getDefaultContentType(platform: Platform): PostContentType | null {
   if (platform === 'YOUTUBE') return 'YOUTUBE_VIDEO'
   if (platform === 'INSTAGRAM') return 'INSTAGRAM_POST'
+  if (platform === 'TIKTOK') return 'TIKTOK_VIDEO'
   return null
 }
 

@@ -73,11 +73,13 @@ export function InstagramSettingsCard({ onToggle, open, selection }: InstagramSe
 }
 
 type TiktokSettingsCardProps = SettingsCardProps & {
+  descriptionRegister: UseFormRegisterReturn | null
   onVisibilityChange: PlatformVisibilityChange
   selection: PlatformSelection
 }
 
 export function TiktokSettingsCard({
+  descriptionRegister,
   onToggle,
   onVisibilityChange,
   open,
@@ -104,6 +106,18 @@ export function TiktokSettingsCard({
           platform="TIKTOK"
           value={selection.visibility}
         />
+        {descriptionRegister && (
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" htmlFor="tiktok-description">
+              Description (optionnel)
+            </label>
+            <Input
+              id="tiktok-description"
+              placeholder="Description affichée sur le post TikTok"
+              {...descriptionRegister}
+            />
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-3">
           {['Commentaires', 'Duo', 'Collage'].map((label) => (
             <div key={label} className="flex items-center gap-2 text-sm">

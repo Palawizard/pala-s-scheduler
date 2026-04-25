@@ -23,6 +23,7 @@ export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormPro
     handleCancel,
     handleSubmit,
     hasYoutube,
+    hasTiktok,
     instagramSelection,
     pending,
     previewMediaUrl,
@@ -68,6 +69,7 @@ export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormPro
             errorMessages={errorMessages}
             instagramSelection={instagramSelection}
             onVisibilityChange={updatePlatformVisibility}
+            tiktokDescriptionRegister={hasTiktok && tiktokSelection?.contentType === 'TIKTOK_PHOTO' ? form.register('title') : null}
             tiktokSelection={tiktokSelection}
             youtubeSelection={youtubeSelection}
           />

@@ -20,6 +20,8 @@ export const TWITTER_API_COST_NOTICE =
 export const POST_CONTENT_TYPE_LABELS: Record<PostContentType, string> = {
   INSTAGRAM_POST: 'Post',
   INSTAGRAM_REEL: 'Reel',
+  TIKTOK_PHOTO: 'Photo',
+  TIKTOK_VIDEO: 'Vidéo',
   YOUTUBE_SHORT: 'Short',
   YOUTUBE_VIDEO: 'Vidéo',
 }
