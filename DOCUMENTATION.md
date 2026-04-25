@@ -33,14 +33,14 @@ Pala's Scheduler est une application web personnelle de planification et publica
 | Redis | 7.x | Cache + file d'attente |
 | BullMQ | 5.x | Worker de publication planifiee |
 | Auth.js | v5 (beta) | Authentification OAuth |
-| Filesystem local | Node.js | Stockage medias sur l'infra personnelle |
+| Cloudflare R2 | S3 compatible | Stockage objet des medias |
 | Sharp | latest | Traitement/compression d'images |
 
 ### Infrastructure
 | Outil | Role |
 |---|---|
 | Docker Compose | Environnement de dev local |
-| Stockage local | Medias sur volume disque ou NAS personnel |
+| Cloudflare R2 | Bucket prive ou expose via domaine public |
 | Vercel | Deploiement frontend + API routes |
 | Railway / Render | PostgreSQL + Redis en prod |
 
@@ -78,7 +78,7 @@ PostgreSQL           Redis
        YouTube  Insta  TikTok   X API
           |
           v
-     Stockage local (medias stockes)
+     Cloudflare R2 (medias stockes)
 ```
 
 Le worker BullMQ tourne en parallele du serveur Next.js (via `npm run worker` ou processus separe en prod). Il consomme des jobs de la queue Redis et appelle les APIs sociales au moment prevu.
@@ -141,7 +141,7 @@ pala-s-scheduler/
 |   |   |-- auth.ts                      # config Auth.js
 |   |   |-- db.ts                        # instance Prisma singleton
 |   |   |-- queue.ts                     # instance BullMQ + helpers
-|   |   |-- storage.ts                   # helpers stockage local
+|   |   |-- storage.ts                   # helpers stockage Cloudflare R2
 |   |   |-- platforms/
 |   |   |   |-- youtube.ts
 |   |   |   |-- instagram.ts
@@ -371,8 +371,8 @@ enum PostPlatformStatus {
 ### Upload
 | Methode | Route | Description |
 |---|---|---|
-| POST | `/api/upload` | Upload media vers le stockage local, retourne URL |
-| DELETE | `/api/upload` | Supprimer un media du stockage local |
+| POST | `/api/upload` | Upload media vers Cloudflare R2, retourne URL |
+| DELETE | `/api/upload` | Supprimer un media de Cloudflare R2 |
 
 ---
 
@@ -431,10 +431,12 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pala_scheduler
 # Redis
 REDIS_URL=redis://localhost:6379
 
-# Local media storage
-LOCAL_STORAGE_ROOT=./storage          # Dossier local ou volume monte
-LOCAL_STORAGE_PUBLIC_URL=http://localhost:3000/api/media
-NEXT_PUBLIC_LOCAL_STORAGE_PUBLIC_URL=http://localhost:3000/api/media
+# Cloudflare R2 media storage
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET_NAME=
+R2_PUBLIC_URL=http://localhost:3000/api/media
 
 # YouTube
 GOOGLE_CLIENT_ID=
@@ -495,6 +497,27 @@ pnpm run dev:tunnel
 # 9. Demarrer le worker (terminal separe)
 pnpm worker:dev
 ```
+
+### Setup Cloudflare R2
+
+1. Dans Cloudflare, creer un bucket R2, par exemple `pala-s-scheduler-media`.
+2. Creer un token R2 avec les droits Object Read & Write sur ce bucket.
+3. Renseigner dans `.env.local` :
+
+```bash
+R2_ACCOUNT_ID=<account-id-cloudflare>
+R2_ACCESS_KEY_ID=<access-key-id-r2>
+R2_SECRET_ACCESS_KEY=<secret-access-key-r2>
+R2_BUCKET_NAME=pala-s-scheduler-media
+R2_PUBLIC_URL=http://localhost:3000/api/media
+```
+
+En dev, garder `R2_PUBLIC_URL=http://localhost:3000/api/media` si l'application est ouverte en local. Pour tester Instagram via le tunnel HTTPS, mettre aussi `NEXTAUTH_URL=https://dev-scheduler.palawi.fr` afin que les URLs medias envoyees aux APIs sociales passent par le tunnel.
+
+En production, deux options sont possibles :
+
+- Bucket prive : garder `R2_PUBLIC_URL=/api/media` ou utiliser l'URL publique de l'application. Les medias sont servis par la route proxy `/api/media/[...key]`.
+- Domaine public R2 : connecter un domaine ou sous-domaine au bucket, puis mettre `R2_PUBLIC_URL=https://media.example.com`. Les plateformes sociales liront les fichiers directement depuis R2.
 
 ### Tunnel HTTPS OAuth
 
@@ -630,7 +653,7 @@ volumes:
 | Queue de jobs | BullMQ + Redis | Fiable, retry automatique, UI de monitoring disponible (Bull Board) |
 | Auth | Auth.js v5 | Support natif OAuth multi-provider |
 | ORM | Prisma | Type-safety, migrations, studio visuel |
-| Stockage medias | Stockage local | Compatible infra personnelle, volume disque ou NAS |
+| Stockage medias | Cloudflare R2 | Stockage objet durable, compatible S3, accessible aux APIs sociales |
 | Calendrier | FullCalendar | Drag-and-drop, vues multiples, tres complet |
 | State management | Zustand | Leger, pas de boilerplate Redux |
 | Composants UI | shadcn/ui | Non-opinionated, copiable dans le projet, accessible |

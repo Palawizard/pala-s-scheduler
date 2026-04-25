@@ -1,5 +1,7 @@
 import type { Prisma } from '@prisma/client'
 
+import { extractKeyFromUrl, getAppMediaUrl } from '@/lib/storage'
+
 const postWithPlatforms = {
   platforms: {
     select: {
@@ -25,14 +27,23 @@ export type PostWithPlatforms = Prisma.PostGetPayload<{ include: typeof postWith
 
 export const postInclude = postWithPlatforms
 
+function serializeMediaUrl(url: string): string {
+  try {
+    const key = extractKeyFromUrl(url)
+    return key ? getAppMediaUrl(key) : url
+  } catch {
+    return url
+  }
+}
+
 export function serializePost(post: PostWithPlatforms) {
   return {
     id: post.id,
     title: post.title,
     caption: post.caption,
     hashtags: post.hashtags,
-    mediaUrls: post.mediaUrls,
-    thumbnailUrl: post.thumbnailUrl,
+    mediaUrls: post.mediaUrls.map(serializeMediaUrl),
+    thumbnailUrl: post.thumbnailUrl ? serializeMediaUrl(post.thumbnailUrl) : null,
     scheduledAt: post.scheduledAt?.toISOString() ?? null,
     publishedAt: post.publishedAt?.toISOString() ?? null,
     status: post.status,

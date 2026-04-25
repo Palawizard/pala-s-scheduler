@@ -33,8 +33,8 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
   - `chore(db): setup prisma with full schema and initial migration`
 - [x] **1.4** BullMQ queue (`src/lib/queue.ts`) + worker skeleton (`src/workers/index.ts`)
   - `chore(worker): setup bullmq queue and worker skeleton`
-- [x] **1.5** Stockage local medias (`src/lib/storage.ts`)
-  - `chore(upload): setup local media storage helpers`
+- [x] **1.5** Stockage medias Cloudflare R2 (`src/lib/storage.ts`)
+  - `chore(upload): setup cloudflare r2 media storage helpers`
 - [x] **1.6** Layout dashboard + sidebar + header + pages vides + composants shadcn/ui
   - `feat(layout): add dashboard layout with sidebar and base shadcn components`
 - [x] **1.7** Types globaux + constantes + utils
@@ -150,7 +150,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
   - `feat(ui): add accented french interface copy`
 - [x] **3.1** API CRUD posts (`GET`, `POST`, `PATCH`, `DELETE`) avec validation Zod
   - `feat(posts): add post crud api routes with zod validation`
-- [x] **3.2** API upload media locale + suppression
+- [x] **3.2** API upload media R2 + suppression
   - `feat(upload): add media upload and delete api routes`
 - [x] **3.3** TanStack Query setup + hooks posts (`usePosts`, `useCreatePost`, etc.)
   - `feat(posts): add react query hooks for post management`
@@ -158,8 +158,8 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
   - `feat(calendar): add interactive fullcalendar with post events`
 - [x] **3.5** Formulaire de creation de post (React Hook Form + Zod + modale)
   - `feat(posts): add post creation form with platform selector`
-- [x] **3.6** Upload de medias dans le formulaire (drag-and-drop + preview + stockage local)
-  - `feat(posts): add media uploader with local storage integration`
+- [x] **3.6** Upload de medias dans le formulaire (drag-and-drop + preview + stockage R2)
+  - `feat(posts): add media uploader with r2 storage integration`
 - [x] **3.7** Composant evenement post sur le calendrier (icones + couleurs par statut)
   - `feat(calendar): add post event component with status colors`
 - [x] **3.8** Page `/posts` : liste avec filtres + actions (editer, publier, supprimer)
@@ -199,7 +199,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 1. Dans la modale, uploader une image
 2. Preview visible sous la zone d'upload
 3. Supprimer le media -> disparait de la preview
-4. Dans le dossier de stockage local : verifier l'upload et la suppression
+4. Dans le bucket Cloudflare R2 : verifier l'upload et la suppression
 
 #### Drag-and-drop
 

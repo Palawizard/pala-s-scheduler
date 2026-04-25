@@ -1,12 +1,11 @@
 import {
   extractKeyFromUrl,
   getAbsolutePublicUrl,
-  getFileSizeFromStorage,
   readFileFromStorage,
 } from '@/lib/storage'
 import type { PublishMedia } from '@/lib/platforms'
 
-const CONTENT_TYPES: Record<string, string> = {
+const EXTENSION_TYPES: Record<string, string> = {
   '.avi': 'video/x-msvideo',
   '.gif': 'image/gif',
   '.jpeg': 'image/jpeg',
@@ -18,11 +17,14 @@ const CONTENT_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
 }
 
-function getContentType(key: string): string {
+function detectContentType(buf: Buffer, key: string): string {
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png'
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg'
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return 'image/gif'
+  if (buf[4] === 0x66 && buf[5] === 0x74 && buf[6] === 0x79 && buf[7] === 0x70) return 'video/mp4'
   const extensionIndex = key.lastIndexOf('.')
   if (extensionIndex === -1) return 'application/octet-stream'
-
-  return CONTENT_TYPES[key.slice(extensionIndex).toLowerCase()] ?? 'application/octet-stream'
+  return EXTENSION_TYPES[key.slice(extensionIndex).toLowerCase()] ?? 'application/octet-stream'
 }
 
 export async function loadPublishMedia(mediaUrls: string[]): Promise<PublishMedia[]> {
@@ -30,16 +32,17 @@ export async function loadPublishMedia(mediaUrls: string[]): Promise<PublishMedi
     mediaUrls.map(async (url) => {
       const key = extractKeyFromUrl(url)
       if (!key) {
-        throw new Error('Média local introuvable')
+        throw new Error('Média introuvable')
       }
 
+      const buffer = await readFileFromStorage(key)
       return {
         url,
         key,
         publicUrl: getAbsolutePublicUrl(key),
-        contentType: getContentType(key),
-        size: await getFileSizeFromStorage(key),
-        buffer: await readFileFromStorage(key),
+        contentType: detectContentType(buffer, key),
+        size: buffer.length,
+        buffer,
       }
     })
   )
