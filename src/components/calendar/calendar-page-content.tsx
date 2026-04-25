@@ -43,9 +43,9 @@ export function CalendarPageContent() {
               Créer
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[96vh] w-[calc(100vw-1rem)] max-w-[min(1500px,calc(100vw-1rem))] overflow-hidden p-0">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="px-6 pt-6">
                 {selectedPost ? 'Modifier la publication' : 'Créer une publication'}
               </DialogTitle>
             </DialogHeader>

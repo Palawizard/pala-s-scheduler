@@ -4,13 +4,7 @@ import { Check } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { usePlatforms } from '@/hooks/use-platforms'
-import {
-  PLATFORM_LABELS,
-  PLATFORM_VISIBILITY_OPTIONS,
-  POST_CONTENT_TYPE_LABELS,
-  POST_VISIBILITY_LABELS,
-  TWITTER_API_COST_NOTICE,
-} from '@/lib/constants'
+import { PLATFORM_LABELS, POST_CONTENT_TYPE_LABELS, TWITTER_API_COST_NOTICE } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import type { Platform, PostContentType, PostVisibility } from '@/types'
 
@@ -61,15 +55,7 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
   }
 
   function updateContentType(platform: Platform, contentType: PostContentType) {
-    onChange(
-      value.map((item) => (item.platform === platform ? { ...item, contentType } : item))
-    )
-  }
-
-  function updateVisibility(platform: Platform, visibility: PostVisibility) {
-    onChange(
-      value.map((item) => (item.platform === platform ? { ...item, visibility } : item))
-    )
+    onChange(value.map((item) => (item.platform === platform ? { ...item, contentType } : item)))
   }
 
   if (isLoading) {
@@ -81,62 +67,50 @@ export function PlatformSelector({ value, onChange }: PlatformSelectorProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {activePlatforms.map((account) => {
-        const selected = value.find((item) => item.platform === account.platform)
-        const contentTypeOptions = CONTENT_TYPE_OPTIONS[account.platform]
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {activePlatforms.map((account) => {
+          const selected = value.find((item) => item.platform === account.platform)
+          const contentTypeOptions = CONTENT_TYPE_OPTIONS[account.platform]
 
-        const visibilityOptions = PLATFORM_VISIBILITY_OPTIONS[account.platform]
-
-        return (
-          <div key={account.platform} className="space-y-1">
-            <Button
-              type="button"
-              variant="outline"
-              className={cn('w-full justify-between', selected && 'border-foreground')}
-              onClick={() => togglePlatform(account.platform)}
-            >
-              <span>{PLATFORM_LABELS[account.platform]}</span>
-              {selected && <Check className="h-4 w-4" />}
-            </Button>
-            {account.platform === 'TWITTER' && (
-              <p className="text-xs leading-snug text-amber-700">{TWITTER_API_COST_NOTICE}</p>
-            )}
-            {selected && contentTypeOptions && (
-              <div className="grid grid-cols-2 gap-1">
-                {contentTypeOptions.map((contentType) => (
-                  <Button
-                    key={contentType}
-                    type="button"
-                    variant={selected.contentType === contentType ? 'default' : 'outline'}
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={() => updateContentType(account.platform, contentType)}
-                  >
-                    {POST_CONTENT_TYPE_LABELS[contentType]}
-                  </Button>
-                ))}
-              </div>
-            )}
-            {selected && visibilityOptions && (
-              <div className="grid grid-cols-3 gap-1">
-                {visibilityOptions.map((visibility) => (
-                  <Button
-                    key={visibility}
-                    type="button"
-                    variant={selected.visibility === visibility ? 'default' : 'outline'}
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={() => updateVisibility(account.platform, visibility)}
-                  >
-                    {POST_VISIBILITY_LABELS[visibility]}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
+          return (
+            <div key={account.platform} className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(
+                  'h-10 gap-2 rounded-full px-3',
+                  selected &&
+                    'border-foreground bg-foreground text-background hover:bg-foreground/90 hover:text-background'
+                )}
+                onClick={() => togglePlatform(account.platform)}
+              >
+                <span>{PLATFORM_LABELS[account.platform]}</span>
+                {selected && <Check className="h-4 w-4" />}
+              </Button>
+              {selected && contentTypeOptions && (
+                <div className="bg-muted flex rounded-full p-1">
+                  {contentTypeOptions.map((contentType) => (
+                    <Button
+                      key={contentType}
+                      type="button"
+                      variant={selected.contentType === contentType ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 rounded-full border-0 px-3 text-xs shadow-none"
+                      onClick={() => updateContentType(account.platform, contentType)}
+                    >
+                      {POST_CONTENT_TYPE_LABELS[contentType]}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      {activePlatforms.some((account) => account.platform === 'TWITTER') && (
+        <p className="text-xs leading-snug text-amber-700">{TWITTER_API_COST_NOTICE}</p>
+      )}
     </div>
   )
 }

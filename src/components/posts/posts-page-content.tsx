@@ -11,12 +11,7 @@ import { PostPreview } from '@/components/posts/post-preview'
 import { PostStatusBadge } from '@/components/posts/post-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   useCancelPost,
   useDeletePost,
@@ -24,7 +19,12 @@ import {
   usePublishPost,
   type PostView,
 } from '@/hooks/use-posts'
-import { PLATFORM_LABELS, POST_CONTENT_TYPE_LABELS, POST_STATUS_LABELS, POST_VISIBILITY_LABELS } from '@/lib/constants'
+import {
+  PLATFORM_LABELS,
+  POST_CONTENT_TYPE_LABELS,
+  POST_STATUS_LABELS,
+  POST_VISIBILITY_LABELS,
+} from '@/lib/constants'
 import { PLATFORMS, POST_STATUSES, type Platform, type PostStatus } from '@/types'
 
 function formatPostDate(date: string | null): string {
@@ -123,7 +123,9 @@ export function PostsPageContent() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {isLoading && <p className="text-muted-foreground text-sm">Chargement des publications...</p>}
+        {isLoading && (
+          <p className="text-muted-foreground text-sm">Chargement des publications...</p>
+        )}
         {!isLoading && posts.length === 0 && (
           <p className="text-muted-foreground text-sm">Aucune publication.</p>
         )}
@@ -174,7 +176,11 @@ export function PostsPageContent() {
                   variant="outline"
                   size="sm"
                   onClick={() => handlePublish(post)}
-                  disabled={publishPost.isPending || post.status === 'PUBLISHING' || post.status === 'PUBLISHED'}
+                  disabled={
+                    publishPost.isPending ||
+                    post.status === 'PUBLISHING' ||
+                    post.status === 'PUBLISHED'
+                  }
                 >
                   <Send className="h-4 w-4" />
                   Publier
@@ -183,7 +189,11 @@ export function PostsPageContent() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleCancel(post)}
-                  disabled={cancelPost.isPending || post.status === 'PUBLISHING' || post.status === 'PUBLISHED'}
+                  disabled={
+                    cancelPost.isPending ||
+                    post.status === 'PUBLISHING' ||
+                    post.status === 'PUBLISHED'
+                  }
                 >
                   Annuler
                 </Button>
@@ -198,9 +208,9 @@ export function PostsPageContent() {
       </div>
 
       <Dialog open={Boolean(editingPost)} onOpenChange={(open) => !open && setEditingPost(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[96vh] w-[calc(100vw-1rem)] max-w-[min(1500px,calc(100vw-1rem))] overflow-hidden p-0">
           <DialogHeader>
-            <DialogTitle>Modifier la publication</DialogTitle>
+            <DialogTitle className="px-6 pt-6">Modifier la publication</DialogTitle>
           </DialogHeader>
           {editingPost && (
             <PostForm
