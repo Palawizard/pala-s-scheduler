@@ -132,19 +132,23 @@ async function createInstagramContainer(
     body.set('media_type', 'REELS')
     body.set('video_url', media.publicUrl)
   } else {
+    body.set('media_type', 'IMAGE')
     body.set('image_url', media.publicUrl)
   }
+  console.log(`[instagram] media url sent: ${media.publicUrl}`)
 
   const response = await fetch(`${INSTAGRAM_GRAPH}/${platform.platformUserId}/media`, {
     method: 'POST',
     body,
   })
 
+  const responseText = await response.text()
+  console.log(`[instagram] container response: ${responseText}`)
   if (!response.ok) {
-    throw new Error(`Instagram container creation failed: ${await response.text()}`)
+    throw new Error(`Instagram container creation failed: ${responseText}`)
   }
 
-  const data = (await response.json()) as { id?: string }
+  const data = JSON.parse(responseText) as { id?: string }
   if (!data.id) {
     throw new Error('Instagram container response missing ID')
   }
@@ -184,9 +188,7 @@ async function publishInstagram(
   const refreshedPlatform = await ensureInstagramToken(platform)
   const container = await createInstagramContainer(payload, refreshedPlatform)
 
-  if (container.isVideo) {
-    await waitForInstagramContainer(container.id, refreshedPlatform.accessToken)
-  }
+  await waitForInstagramContainer(container.id, refreshedPlatform.accessToken)
 
   const response = await fetch(`${INSTAGRAM_GRAPH}/${refreshedPlatform.platformUserId}/media_publish`, {
     method: 'POST',
