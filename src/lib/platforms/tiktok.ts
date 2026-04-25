@@ -25,6 +25,16 @@ type TikTokTokenResponse = {
   open_id: string
 }
 
+type TikTokApiError = {
+  code?: string
+  message?: string
+  log_id?: string
+}
+
+function throwTikTokApiError(body: { error?: TikTokApiError }): never {
+  throw new Error(`TikTok error: ${JSON.stringify(body)}`)
+}
+
 export function getTikTokAuthUrl(state: string, codeChallenge: string): string {
   const params = new URLSearchParams({
     client_key: process.env.TIKTOK_CLIENT_KEY!,
@@ -209,7 +219,7 @@ async function initTikTokUpload(
   }
 
   if (body.error?.code && body.error.code !== 'ok') {
-    throw new Error(`TikTok error: ${body.error.message ?? body.error.code}`)
+    throwTikTokApiError(body)
   }
 
   if (!body.data?.publish_id || !body.data.upload_url) {
@@ -261,7 +271,7 @@ async function initTikTokPhotoPost(
   }
 
   if (body.error?.code && body.error.code !== 'ok') {
-    throw new Error(`TikTok error: ${body.error.message ?? body.error.code}`)
+    throwTikTokApiError(body)
   }
 
   if (!body.data?.publish_id) {
@@ -292,7 +302,7 @@ async function waitForTikTokPublish(platform: ConnectedPlatform, publishId: stri
     }
 
     if (body.error?.code && body.error.code !== 'ok') {
-      throw new Error(`TikTok error: ${body.error.message ?? body.error.code}`)
+      throwTikTokApiError(body)
     }
 
     if (body.data?.status === 'PUBLISH_COMPLETE' || body.data?.status === 'SEND_TO_USER_INBOX') {

@@ -202,6 +202,8 @@ const TIKTOK_ERROR_CODES: Record<string, string> = {
     "TikTok n'a pas pu recuperer la video — verifiez que l'URL est accessible publiquement",
   photo_pull_failed:
     "TikTok n'a pas pu recuperer l'image — verifiez que l'URL est accessible publiquement et que le domaine est autorise dans TikTok Developers",
+  url_ownership_unverified:
+    'Le domaine ou prefixe URL des médias doit être vérifié dans TikTok Developers > URL properties. Vérifiez le domaine de NEXTAUTH_URL ou R2_PUBLIC_URL, par exemple https://dev-scheduler.palawi.fr/api/media/',
   video_size_check_failed:
     'La vidéo ne respecte pas les contraintes de taille TikTok (9:16 recommandé, 1080p minimum)',
   video_duration_check_failed: 'La durée de la vidéo est hors limites TikTok (15s–10min)',
