@@ -1,13 +1,18 @@
 import type { ConnectedPlatform } from '@prisma/client'
 
 import { db } from '@/lib/db'
-import type { PlatformPublisher, PublishPayload, PublishResult } from '@/lib/platforms'
-import { getFirstVideoMedia } from '@/lib/platforms/media'
+import type {
+  PlatformPublisher,
+  PublishMedia,
+  PublishPayload,
+  PublishResult,
+} from '@/lib/platforms'
 
 const TIKTOK_AUTH = 'https://www.tiktok.com/v2/auth/authorize/'
 const TIKTOK_TOKEN = 'https://open.tiktokapis.com/v2/oauth/token/'
 const TIKTOK_USER = 'https://open.tiktokapis.com/v2/user/info/'
 const TIKTOK_PUBLISH_INIT = 'https://open.tiktokapis.com/v2/post/publish/video/init/'
+const TIKTOK_CONTENT_INIT = 'https://open.tiktokapis.com/v2/post/publish/content/init/'
 const TIKTOK_PUBLISH_STATUS = 'https://open.tiktokapis.com/v2/post/publish/status/fetch/'
 
 const CALLBACK_URL = () => `${process.env.NEXTAUTH_URL}/api/platforms/tiktok/callback`
@@ -157,15 +162,19 @@ function getTikTokTitle(payload: PublishPayload): string {
   return (payload.caption || payload.title || 'Publication').slice(0, 2200)
 }
 
+function getTikTokPhotoTitle(payload: PublishPayload): string {
+  return (payload.title || 'Photo').slice(0, 90)
+}
+
+function getTikTokPhotoDescription(payload: PublishPayload): string {
+  return (payload.caption || payload.title || 'Publication').slice(0, 4000)
+}
+
 async function initTikTokUpload(
   payload: PublishPayload,
-  platform: ConnectedPlatform
+  platform: ConnectedPlatform,
+  video: PublishMedia
 ): Promise<{ publishId: string; uploadUrl: string }> {
-  const video = getFirstVideoMedia(payload.media)
-  if (!video) {
-    throw new Error('TikTok nécessite une vidéo.')
-  }
-
   const privacyLevel = toTikTokPrivacy(payload.visibility)
   const response = await fetch(TIKTOK_PUBLISH_INIT, {
     method: 'POST',
@@ -213,6 +222,55 @@ async function initTikTokUpload(
   }
 }
 
+async function initTikTokPhotoPost(
+  payload: PublishPayload,
+  platform: ConnectedPlatform,
+  image: PublishMedia
+): Promise<{ publishId: string }> {
+  const response = await fetch(TIKTOK_CONTENT_INIT, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${platform.accessToken}`,
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: JSON.stringify({
+      post_info: {
+        title: getTikTokPhotoTitle(payload),
+        description: getTikTokPhotoDescription(payload),
+        privacy_level: toTikTokPrivacy(payload.visibility),
+        disable_comment: false,
+        auto_add_music: true,
+      },
+      source_info: {
+        source: 'PULL_FROM_URL',
+        photo_cover_index: 0,
+        photo_images: [image.publicUrl],
+      },
+      post_mode: 'DIRECT_POST',
+      media_type: 'PHOTO',
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`TikTok photo publish init failed: ${await response.text()}`)
+  }
+
+  const body = (await response.json()) as {
+    data?: { publish_id?: string }
+    error?: { code?: string; message?: string }
+  }
+
+  if (body.error?.code && body.error.code !== 'ok') {
+    throw new Error(`TikTok error: ${body.error.message ?? body.error.code}`)
+  }
+
+  if (!body.data?.publish_id) {
+    throw new Error('TikTok photo publish init response missing fields')
+  }
+
+  return { publishId: body.data.publish_id }
+}
+
 async function waitForTikTokPublish(platform: ConnectedPlatform, publishId: string): Promise<void> {
   for (let attempt = 0; attempt < 18; attempt += 1) {
     const response = await fetch(TIKTOK_PUBLISH_STATUS, {
@@ -242,13 +300,13 @@ async function waitForTikTokPublish(platform: ConnectedPlatform, publishId: stri
     }
 
     if (body.data?.status === 'FAILED') {
-      throw new Error('TikTok n’a pas pu publier la vidéo.')
+      throw new Error('TikTok n’a pas pu publier le média.')
     }
 
     await new Promise((resolve) => setTimeout(resolve, 5000))
   }
 
-  throw new Error('TikTok prend trop de temps à publier la vidéo.')
+  throw new Error('TikTok prend trop de temps à publier le média.')
 }
 
 async function publishTikTok(
@@ -256,20 +314,35 @@ async function publishTikTok(
   platform: ConnectedPlatform
 ): Promise<PublishResult> {
   const refreshedPlatform = await ensureTikTokToken(platform)
-  const video = getFirstVideoMedia(payload.media)
-  if (!video) {
-    throw new Error('TikTok nécessite une vidéo.')
+
+  if (payload.media.length !== 1) {
+    throw new Error('TikTok accepte un seul média pour le moment.')
   }
 
-  const upload = await initTikTokUpload(payload, refreshedPlatform)
+  const media = payload.media[0]
+  if (!media) {
+    throw new Error('TikTok nécessite un média.')
+  }
+
+  if (media.contentType.startsWith('image/')) {
+    const post = await initTikTokPhotoPost(payload, refreshedPlatform, media)
+    await waitForTikTokPublish(refreshedPlatform, post.publishId)
+    return { platformPostId: post.publishId }
+  }
+
+  if (!media.contentType.startsWith('video/')) {
+    throw new Error('TikTok nécessite une image ou une vidéo.')
+  }
+
+  const upload = await initTikTokUpload(payload, refreshedPlatform, media)
   const uploadResponse = await fetch(upload.uploadUrl, {
     method: 'PUT',
     headers: {
-      'Content-Length': video.size.toString(),
-      'Content-Range': `bytes 0-${video.size - 1}/${video.size}`,
-      'Content-Type': video.contentType,
+      'Content-Length': media.size.toString(),
+      'Content-Range': `bytes 0-${media.size - 1}/${media.size}`,
+      'Content-Type': media.contentType,
     },
-    body: new Uint8Array(video.buffer),
+    body: new Uint8Array(media.buffer),
   })
 
   if (!uploadResponse.ok) {
