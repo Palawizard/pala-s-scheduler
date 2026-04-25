@@ -10,8 +10,7 @@ const TIKTOK_USER = 'https://open.tiktokapis.com/v2/user/info/'
 const TIKTOK_PUBLISH_INIT = 'https://open.tiktokapis.com/v2/post/publish/video/init/'
 const TIKTOK_PUBLISH_STATUS = 'https://open.tiktokapis.com/v2/post/publish/status/fetch/'
 
-const CALLBACK_URL = () =>
-  `${process.env.NEXTAUTH_URL}/api/platforms/tiktok/callback`
+const CALLBACK_URL = () => `${process.env.NEXTAUTH_URL}/api/platforms/tiktok/callback`
 
 type TikTokTokenResponse = {
   access_token: string
@@ -30,11 +29,15 @@ export function getTikTokAuthUrl(state: string, codeChallenge: string): string {
     state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
+    disable_auto_auth: '1',
   })
   return `${TIKTOK_AUTH}?${params}`
 }
 
-export async function exchangeTikTokCode(code: string, codeVerifier: string): Promise<TikTokTokenResponse> {
+export async function exchangeTikTokCode(
+  code: string,
+  codeVerifier: string
+): Promise<TikTokTokenResponse> {
   const res = await fetch(TIKTOK_TOKEN, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
