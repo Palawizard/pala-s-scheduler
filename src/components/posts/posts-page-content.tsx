@@ -136,13 +136,13 @@ export function PostsPageContent() {
               <div className="min-w-0 flex-1">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   <h2 className="truncate text-sm font-medium">
-                    {post.title || post.caption || 'Publication'}
+                    {post.caption || post.title || 'Publication'}
                   </h2>
                   <PostStatusBadge status={post.status} />
                 </div>
-                <p className="text-muted-foreground line-clamp-2 text-sm">
-                  {post.caption || 'Aucun texte'}
-                </p>
+                {post.title && (
+                  <p className="text-muted-foreground line-clamp-2 text-sm">{post.title}</p>
+                )}
                 <div className="text-muted-foreground mt-2 flex flex-wrap gap-2 text-xs">
                   <span>{formatPostDate(post.scheduledAt)}</span>
                   {post.platforms.map((item) => (
