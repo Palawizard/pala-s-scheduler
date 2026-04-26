@@ -79,6 +79,7 @@ export function AnalyticsPageContent() {
           <AccountSection
             byPlatform={data.account.byPlatform}
             followersOverTime={data.account.followersOverTime}
+            impressionsOverTime={data.account.impressionsOverTime}
             totalFollowers={data.account.totalFollowers}
             totalImpressions={data.account.totalImpressions}
           />

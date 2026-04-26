@@ -10,7 +10,7 @@ export type AccountPlatformStats = {
   impressions: number
 }
 
-export type FollowersDay = {
+export type PlatformDay = {
   date: string
   [platform: string]: string | number
 }
@@ -33,27 +33,24 @@ export type PlatformPostItem = {
   likes: number
   comments: number
   shares: number
+  saves: number
   impressions: number
   reach: number
-}
-
-export type DayValue = {
-  date: string
-  value: number
 }
 
 export type AnalyticsData = {
   period: number
   account: {
     byPlatform: AccountPlatformStats[]
-    followersOverTime: FollowersDay[]
+    followersOverTime: PlatformDay[]
+    impressionsOverTime: PlatformDay[]
     totalFollowers: number
     totalImpressions: number
   }
   posts: {
     byPlatform: PostPlatformTotals[]
-    interactionsByDay: DayValue[]
-    postsByDay: DayValue[]
+    interactionsByDay: PlatformDay[]
+    postsByDay: PlatformDay[]
     totalInteractions: number
     totalPostsCount: number
     items: PlatformPostItem[]
@@ -69,8 +66,12 @@ async function fetchAnalytics(period: number): Promise<AnalyticsData> {
 
 async function triggerSync(): Promise<{ synced: number; skipped: number; errors: number }> {
   const res = await fetch('/api/analytics/sync', { method: 'POST' })
-  const body = (await res.json()) as { data?: { synced: number; skipped: number; errors: number }; error?: unknown }
-  if (!res.ok) throw new Error(typeof body.error === 'string' ? body.error : 'Synchronisation impossible')
+  const body = (await res.json()) as {
+    data?: { synced: number; skipped: number; errors: number }
+    error?: unknown
+  }
+  if (!res.ok)
+    throw new Error(typeof body.error === 'string' ? body.error : 'Synchronisation impossible')
   return body.data!
 }
 
