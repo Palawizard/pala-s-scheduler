@@ -24,7 +24,7 @@ export type PostSchedulerJobData = {
 }
 
 function jobId(postId: string): string {
-  return `post:${postId}`
+  return `post_${postId}`
 }
 
 export async function schedulePostJob(postId: string, userId: string, scheduledAt: Date): Promise<void> {
