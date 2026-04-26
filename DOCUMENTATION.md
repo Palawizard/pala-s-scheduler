@@ -329,6 +329,15 @@ enum PostStatus {
   CANCELLED
 }
 
+enum PostContentType {
+  YOUTUBE_VIDEO
+  YOUTUBE_SHORT
+  INSTAGRAM_POST
+  INSTAGRAM_REEL
+  TIKTOK_VIDEO
+  TIKTOK_PHOTO
+}
+
 enum PostPlatformStatus {
   PENDING
   PUBLISHING
@@ -399,9 +408,11 @@ enum PostPlatformStatus {
 #### TikTok
 - Compte TikTok for Developers
 - App avec "Content Posting API" active
-- Scopes: `video.upload`, `video.publish`
+- Scopes: `user.info.basic,video.upload,video.publish`
 - Redirect URI: `{APP_URL}/api/platforms/tiktok/callback`
 - Note: Sandbox disponible pour dev sans vrai upload
+- Publication photo : PULL_FROM_URL, images redimensionnees automatiquement a max 1080x1920px via Sharp si necessaire
+- Publication video : FILE_UPLOAD avec polling du statut (max 90s)
 
 #### X (Twitter)
 - Compte X Developer Portal

@@ -11,7 +11,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | 1 - Foundation   | TERMINE | `feat/foundation`   | -         |
 | 2 - Auth         | TERMINE | `feat/auth`         | 1         |
 | 3 - Calendar     | TERMINE | `feat/calendar`     | 2         |
-| 4 - Integrations | TERMINE | `feat/integrations` | 2         |
+| 4 - Integrations | TERMINE | `feat/integrations` | 2         | merge sur `dev` le 26/04/2026 |
 | 5 - Scheduler    | A FAIRE | `feat/scheduler`    | 3, 4      |
 | 6 - Analytics    | A FAIRE | `feat/analytics`    | 4, 5      |
 | 7 - Polish       | A FAIRE | `feat/polish`       | 6         |
@@ -222,7 +222,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ## Epic 4 : Integrations de Publication — TERMINE
 
-**Branche :** `feat/integrations`
+**Branche :** `feat/integrations` (merge sur `dev` le 26/04/2026)
 **Depend de :** Epic 2 (merge sur `dev`)
 **Objectif :** Implementer la publication reelle vers chaque plateforme sociale.
 
@@ -242,6 +242,19 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
   - `feat(posts): add immediate publish route with per-platform status`
 - [x] **4.7** Route `POST /api/posts/[id]/cancel`
   - `feat(posts): add post cancellation route`
+
+### Correctifs et ameliorations post-implementation
+
+- [x] TikTok : support publication photo (PULL_FROM_URL) + resize auto si image > 1080p
+  - `fix(tiktok): add debug logs and resize images above 1080p before photo publish`
+- [x] TikTok : types de contenu Photo / Video + champ Description optionnel (photo uniquement)
+  - `feat(tiktok): add photo and video content types with optional description field`
+- [x] Posts : caption en titre principal dans les cartes
+  - `fix(posts): prioritize caption over title in post card display`
+- [x] Posts : apercu thumbnail video + lecture inline dans le formulaire, calendrier et liste
+  - `feat(posts): add video thumbnail preview and inline playback`
+- [x] UI : panneau de previsualisation par plateforme (TikTok, Instagram Post/Reel, YouTube Video/Short, X)
+  - `feat(ui): improve post preview panel with per-platform layouts`
 
 ### Plan de Test - Epic 4
 
