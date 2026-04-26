@@ -10,6 +10,10 @@ RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 ENV SKIP_ENV_VALIDATION=1
+ARG NEXT_PUBLIC_BASE_PATH
+ARG NEXT_PUBLIC_R2_PUBLIC_URL
+ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_R2_PUBLIC_URL=$NEXT_PUBLIC_R2_PUBLIC_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm prisma generate
