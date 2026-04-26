@@ -159,6 +159,7 @@ export function usePostForm({ initialDate, onCancel, onSuccess, post }: UsePostF
       initialMediaUrlsRef.current.size > 0 ? Array.from(initialMediaUrlsRef.current) : []
     savedRef.current = true
 
+    toast.info('Modifications annulées')
     onCancel?.()
   }
 

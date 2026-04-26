@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Spinner } from '@/components/ui/spinner'
 import type { Platform } from '@/types'
 import { PLATFORM_LABELS, PLATFORM_COLORS, TWITTER_API_COST_NOTICE } from '@/lib/constants'
 
@@ -57,8 +59,7 @@ export function PlatformConnectionCard({
     }
   }
 
-  const isExpired =
-    account?.tokenExpiry ? new Date(account.tokenExpiry) < new Date() : false
+  const isExpired = account?.tokenExpiry ? new Date(account.tokenExpiry) < new Date() : false
 
   return (
     <Card>
@@ -101,16 +102,13 @@ export function PlatformConnectionCard({
         </div>
 
         {account ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDisconnect}
-            disabled={loading}
-          >
+          <Button variant="outline" size="sm" onClick={handleDisconnect} disabled={loading}>
+            {loading && <Spinner />}
             Déconnecter
           </Button>
         ) : (
           <Button size="sm" onClick={handleConnect} disabled={loading}>
+            {loading && <Spinner />}
             Connecter
           </Button>
         )}
