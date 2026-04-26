@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { cancelPostJob } from '@/lib/queue'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
 
 type RouteContext = {
@@ -27,6 +28,8 @@ export async function POST(_request: NextRequest, { params }: RouteContext) {
   if (post.status === 'PUBLISHED' || post.status === 'PUBLISHING') {
     return NextResponse.json({ error: 'Publication non annulable' }, { status: 409 })
   }
+
+  await cancelPostJob(post.id)
 
   const updatedPost = await db.post.update({
     where: { id: post.id },
