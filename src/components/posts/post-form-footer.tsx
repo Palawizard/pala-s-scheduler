@@ -3,6 +3,7 @@
 import { Calendar } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import { formatDateTimeLocal } from '@/components/posts/use-post-form'
 
 type PostFormFooterProps = {
@@ -39,6 +40,7 @@ export function PostFormFooter({
           {formatScheduledAtDisplay(scheduledAt)}
         </div>
         <Button type="submit" disabled={pending}>
+          {pending && <Spinner />}
           {pending ? 'Enregistrement...' : 'Programmer'}
         </Button>
       </div>

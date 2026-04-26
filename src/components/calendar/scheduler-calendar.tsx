@@ -7,6 +7,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import { toast } from 'sonner'
 
 import { PostEvent } from '@/components/calendar/post-event'
+import { Skeleton } from '@/components/ui/skeleton'
 import { type PostView, usePosts, useUpdatePost } from '@/hooks/use-posts'
 import { PLATFORM_COLORS } from '@/lib/constants'
 
@@ -67,31 +68,43 @@ export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalenda
 
   return (
     <div className="min-h-0 flex-1 rounded-lg border bg-white p-3">
-      <FullCalendar
-        plugins={[timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        locale="fr"
-        height="100%"
-        editable
-        selectable
-        nowIndicator
-        events={events}
-        dateClick={handleDateClick}
-        eventClick={handleEventClick}
-        eventDrop={handleEventDrop}
-        eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
-        buttonText={{
-          today: 'Aujourd’hui',
-          week: 'Semaine',
-        }}
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: '',
-        }}
-      />
-      {isLoading && (
-        <div className="text-muted-foreground mt-3 text-sm">Chargement du calendrier...</div>
+      {isLoading ? (
+        <div className="flex h-full min-h-[520px] flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-9 w-36" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+          <div className="grid flex-1 grid-cols-7 gap-2">
+            {Array.from({ length: 28 }).map((_, index) => (
+              <Skeleton key={index} className="min-h-24 rounded-md" />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <FullCalendar
+          plugins={[timeGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          locale="fr"
+          height="100%"
+          editable
+          selectable
+          nowIndicator
+          events={events}
+          dateClick={handleDateClick}
+          eventClick={handleEventClick}
+          eventDrop={handleEventDrop}
+          eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
+          buttonText={{
+            today: 'Aujourd’hui',
+            week: 'Semaine',
+          }}
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: '',
+          }}
+        />
       )}
     </div>
   )
