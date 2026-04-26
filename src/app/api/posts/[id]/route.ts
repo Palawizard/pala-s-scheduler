@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { cancelPostJob, schedulePostJob } from '@/lib/queue'
 import { updatePostSchema } from '@/lib/posts/schemas'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
 import { deletePostMedia } from '@/lib/posts/media-cleanup'
@@ -124,6 +125,12 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       include: postInclude,
     })
   })
+
+  if (post.scheduledAt) {
+    await schedulePostJob(post.id, user.id, post.scheduledAt)
+  } else {
+    await cancelPostJob(post.id)
+  }
 
   return NextResponse.json({ data: serializePost(post) })
 }

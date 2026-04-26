@@ -414,4 +414,5 @@ async function publishTikTok(
 
 export const tiktokPublisher: PlatformPublisher = {
   publish: publishTikTok,
+  refreshToken: ensureTikTokToken,
 }

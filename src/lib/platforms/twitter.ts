@@ -269,4 +269,5 @@ async function publishTwitter(
 
 export const twitterPublisher: PlatformPublisher = {
   publish: publishTwitter,
+  refreshToken: ensureTwitterToken,
 }

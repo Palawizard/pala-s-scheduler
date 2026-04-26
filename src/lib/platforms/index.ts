@@ -34,6 +34,7 @@ export type PublishResult = {
 
 export interface PlatformPublisher {
   publish(payload: PublishPayload, platform: ConnectedPlatform): Promise<PublishResult>
+  refreshToken(platform: ConnectedPlatform): Promise<ConnectedPlatform>
 }
 
 const PLATFORM_PUBLISHERS: Record<Platform, PlatformPublisher> = {

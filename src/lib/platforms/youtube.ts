@@ -189,4 +189,5 @@ async function uploadYoutubeVideo(
 
 export const youtubePublisher: PlatformPublisher = {
   publish: uploadYoutubeVideo,
+  refreshToken: refreshYoutubeToken,
 }
