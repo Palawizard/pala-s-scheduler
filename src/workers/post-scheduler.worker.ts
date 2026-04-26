@@ -1,5 +1,6 @@
 import type { Job } from 'bullmq'
 import { Worker } from 'bullmq'
+import type { ConnectedPlatform } from '@prisma/client'
 import type IORedis from 'ioredis'
 
 import { db } from '@/lib/db'
@@ -33,6 +34,19 @@ async function processScheduledPost(job: Job<PostSchedulerJobData>): Promise<voi
   console.log(`[worker] processing post ${postId}, attempt ${job.attemptsMade + 1}`)
 
   await db.post.update({ where: { id: post.id }, data: { status: 'PUBLISHING' } })
+
+  // Proactively refresh tokens for all platforms before loading media
+  const refreshedPlatforms = new Map<string, ConnectedPlatform>()
+  for (const postPlatform of post.platforms) {
+    if (postPlatform.status === 'PUBLISHED') continue
+    try {
+      const refreshed = await getPlatformClient(postPlatform.platform).refreshToken(postPlatform.connectedPlatform)
+      refreshedPlatforms.set(postPlatform.id, refreshed)
+    } catch (err) {
+      console.warn(`[worker] token refresh failed for ${postPlatform.platform}:`, err instanceof Error ? err.message : err)
+      refreshedPlatforms.set(postPlatform.id, postPlatform.connectedPlatform)
+    }
+  }
 
   let media: Awaited<ReturnType<typeof loadPublishMedia>>
   try {
@@ -85,10 +99,10 @@ async function processScheduledPost(job: Job<PostSchedulerJobData>): Promise<voi
     }
 
     try {
-      // Each publisher handles proactive token refresh internally before publishing
+      const connectedPlatform = refreshedPlatforms.get(postPlatform.id) ?? postPlatform.connectedPlatform
       const result = await getPlatformClient(postPlatform.platform).publish(
         { ...payload, contentType: postPlatform.contentType, visibility: postPlatform.visibility },
-        postPlatform.connectedPlatform
+        connectedPlatform
       )
 
       await db.postPlatform.update({

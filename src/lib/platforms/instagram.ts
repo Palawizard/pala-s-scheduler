@@ -212,4 +212,5 @@ async function publishInstagram(
 
 export const instagramPublisher: PlatformPublisher = {
   publish: publishInstagram,
+  refreshToken: ensureInstagramToken,
 }
