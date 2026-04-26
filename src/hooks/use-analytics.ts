@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { withBasePath } from '@/lib/base-path'
 
 import type { Platform } from '@/types'
 
@@ -58,14 +59,14 @@ export type AnalyticsData = {
 }
 
 async function fetchAnalytics(period: number): Promise<AnalyticsData> {
-  const res = await fetch(`/api/analytics?period=${period}`)
+  const res = await fetch(withBasePath(`/api/analytics?period=${period}`))
   const body = (await res.json()) as { data?: AnalyticsData; error?: unknown }
   if (!res.ok) throw new Error(typeof body.error === 'string' ? body.error : 'Erreur analytiques')
   return body.data as AnalyticsData
 }
 
 async function triggerSync(): Promise<{ synced: number; skipped: number; errors: number }> {
-  const res = await fetch('/api/analytics/sync', { method: 'POST' })
+  const res = await fetch(withBasePath('/api/analytics/sync'), { method: 'POST' })
   const body = (await res.json()) as {
     data?: { synced: number; skipped: number; errors: number }
     error?: unknown

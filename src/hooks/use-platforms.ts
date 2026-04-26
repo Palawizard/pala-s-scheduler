@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { withBasePath } from '@/lib/base-path'
 import type { Platform } from '@/types'
 
 interface ConnectedPlatform {
@@ -15,7 +16,7 @@ interface ConnectedPlatform {
 }
 
 async function fetchPlatforms(): Promise<ConnectedPlatform[]> {
-  const res = await fetch('/api/platforms')
+  const res = await fetch(withBasePath('/api/platforms'))
   if (!res.ok) throw new Error('Failed to fetch platforms')
   const body = (await res.json()) as { data: ConnectedPlatform[] }
   return body.data

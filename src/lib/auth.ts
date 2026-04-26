@@ -4,6 +4,7 @@ import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 import Nodemailer from 'next-auth/providers/nodemailer'
 import { authConfig } from './auth-config'
+import { withBasePath } from './base-path'
 import { db } from './db'
 import { getYoutubeChannel } from './platforms/youtube'
 
@@ -116,8 +117,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: withBasePath('/login'),
+    error: withBasePath('/login'),
   },
   callbacks: {
     async signIn({ user, account }) {

@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'crypto'
 import type { NextRequest } from 'next/server'
+import { getAbsoluteAppUrl } from '@/lib/base-path'
 
 export function generateState(): string {
   return randomBytes(32).toString('hex')
@@ -26,5 +27,5 @@ export function getPKCEVerifierCookie(request: NextRequest): string | undefined 
 }
 
 export function getAppUrl(path: string): URL {
-  return new URL(path, process.env.NEXTAUTH_URL ?? 'http://localhost:3000')
+  return getAbsoluteAppUrl(path)
 }

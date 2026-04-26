@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { withBasePath } from '@/lib/base-path'
 
 import type { Platform, PostContentType, PostStatus, PostVisibility } from '@/types'
 
@@ -64,7 +65,7 @@ function buildPostsUrl(filters?: PostsFilters): string {
   if (filters?.to) searchParams.set('to', filters.to)
 
   const query = searchParams.toString()
-  return query ? `/api/posts?${query}` : '/api/posts'
+  return withBasePath(query ? `/api/posts?${query}` : '/api/posts')
 }
 
 async function readJsonResponse<T>(response: Response): Promise<T> {
@@ -81,12 +82,12 @@ async function fetchPosts(filters?: PostsFilters): Promise<PostView[]> {
 }
 
 async function fetchPost(id: string): Promise<PostView> {
-  const response = await fetch(`/api/posts/${id}`)
+  const response = await fetch(withBasePath(`/api/posts/${id}`))
   return readJsonResponse<PostView>(response)
 }
 
 async function createPost(payload: PostPayload): Promise<PostView> {
-  const response = await fetch('/api/posts', {
+  const response = await fetch(withBasePath('/api/posts'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -95,7 +96,7 @@ async function createPost(payload: PostPayload): Promise<PostView> {
 }
 
 async function updatePost({ id, payload }: { id: string; payload: PostPayload }): Promise<PostView> {
-  const response = await fetch(`/api/posts/${id}`, {
+  const response = await fetch(withBasePath(`/api/posts/${id}`), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -104,17 +105,17 @@ async function updatePost({ id, payload }: { id: string; payload: PostPayload })
 }
 
 async function deletePost(id: string): Promise<{ success: boolean }> {
-  const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' })
+  const response = await fetch(withBasePath(`/api/posts/${id}`), { method: 'DELETE' })
   return readJsonResponse<{ success: boolean }>(response)
 }
 
 async function publishPost(id: string): Promise<PostView> {
-  const response = await fetch(`/api/posts/${id}/publish`, { method: 'POST' })
+  const response = await fetch(withBasePath(`/api/posts/${id}/publish`), { method: 'POST' })
   return readJsonResponse<PostView>(response)
 }
 
 async function cancelPost(id: string): Promise<PostView> {
-  const response = await fetch(`/api/posts/${id}/cancel`, { method: 'POST' })
+  const response = await fetch(withBasePath(`/api/posts/${id}/cancel`), { method: 'POST' })
   return readJsonResponse<PostView>(response)
 }
 

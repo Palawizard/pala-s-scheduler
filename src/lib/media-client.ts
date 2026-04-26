@@ -1,8 +1,10 @@
+import { withBasePath } from '@/lib/base-path'
+
 export async function uploadMedia(file: File): Promise<string> {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch('/api/upload', {
+  const response = await fetch(withBasePath('/api/upload'), {
     method: 'POST',
     body: formData,
   })
@@ -23,7 +25,7 @@ export async function uploadMedia(file: File): Promise<string> {
 }
 
 export async function deleteUploadedMedia(url: string): Promise<void> {
-  const response = await fetch('/api/upload', {
+  const response = await fetch(withBasePath('/api/upload'), {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url }),

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { withBasePath } from '@/lib/base-path'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -13,7 +14,11 @@ export default function LoginPage() {
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    await signIn('nodemailer', { email, callbackUrl: '/calendar', redirect: false })
+    await signIn('nodemailer', {
+      email,
+      callbackUrl: withBasePath('/calendar'),
+      redirect: false,
+    })
     setSent(true)
     setLoading(false)
   }
@@ -70,7 +75,7 @@ export default function LoginPage() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => signIn('google', { callbackUrl: '/calendar' })}
+          onClick={() => signIn('google', { callbackUrl: withBasePath('/calendar') })}
         >
           Continuer avec Google
         </Button>

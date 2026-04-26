@@ -5,6 +5,15 @@ import { db } from '@/lib/db'
 import { PLATFORMS } from '@/types'
 
 type RouteContext = { params: Promise<{ platform: string }> }
+type AnalyticsTotals = {
+  views: number
+  likes: number
+  comments: number
+  shares: number
+  saves: number
+  reach: number
+  impressions: number
+}
 
 function getPeriodStart(period: number): Date {
   const d = new Date()
@@ -45,7 +54,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     orderBy: { publishedAt: 'desc' },
   })
 
-  const posts = postPlatforms.map((pp) => {
+  const posts = postPlatforms.map((pp: (typeof postPlatforms)[number]) => {
     const a = pp.analytics[0]
     return {
       postId: pp.post.id,
@@ -65,7 +74,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   })
 
   const totals = posts.reduce(
-    (acc, p) => ({
+    (acc: AnalyticsTotals, p: (typeof posts)[number]) => ({
       views: acc.views + p.views,
       likes: acc.likes + p.likes,
       comments: acc.comments + p.comments,

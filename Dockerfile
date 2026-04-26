@@ -1,7 +1,7 @@
 FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 WORKDIR /app
 
 FROM base AS deps
@@ -12,6 +12,7 @@ FROM base AS builder
 ENV SKIP_ENV_VALIDATION=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN pnpm prisma generate
 RUN pnpm build
 
 FROM base AS runner
@@ -23,5 +24,6 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/next.config.ts ./next.config.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 EXPOSE 3000
 CMD ["pnpm", "start"]

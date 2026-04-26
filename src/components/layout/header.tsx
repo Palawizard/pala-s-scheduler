@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu } from 'lucide-react'
 
@@ -12,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { withBasePath } from '@/lib/base-path'
 
 type HeaderProps = {
   onMenuClick?: () => void
@@ -61,12 +63,12 @@ export function Header({ onMenuClick }: HeaderProps) {
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <a href="/settings/platforms">Comptes connectés</a>
+              <Link href="/settings/platforms">Comptes connectés</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600 focus:text-red-600"
-              onClick={() => signOut({ callbackUrl: '/login' })}
+              onClick={() => signOut({ callbackUrl: withBasePath('/login') })}
             >
               Se déconnecter
             </DropdownMenuItem>

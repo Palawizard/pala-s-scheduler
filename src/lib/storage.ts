@@ -8,6 +8,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3'
+import { getAbsoluteAppUrl, withBasePath } from '@/lib/base-path'
 
 const DEFAULT_PUBLIC_BASE_URL = '/api/media'
 
@@ -58,7 +59,7 @@ function isR2ApiEndpoint(url: URL): boolean {
 
 export function getAppMediaUrl(key: string): string {
   assertValidStorageKey(key)
-  return `${DEFAULT_PUBLIC_BASE_URL}/${key}`
+  return `${withBasePath(DEFAULT_PUBLIC_BASE_URL)}/${key}`
 }
 
 function assertValidStorageKey(key: string): void {
@@ -137,22 +138,21 @@ export function getPublicUrl(key: string): string {
 
 export function getAbsolutePublicUrl(key: string): string {
   const publicUrl = getPublicUrl(key)
-  const appOrigin = new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000')
 
   try {
     const url = new URL(publicUrl)
     if (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || isR2ApiEndpoint(url)) {
-      return new URL(getAppMediaUrl(key), appOrigin).toString()
+      return getAbsoluteAppUrl(getAppMediaUrl(key)).toString()
     }
     return url.toString()
   } catch {
-    return new URL(publicUrl, appOrigin).toString()
+    return getAbsoluteAppUrl(publicUrl).toString()
   }
 }
 
 export function extractKeyFromUrl(url: string): string {
   const publicBaseUrl = getPublicBaseUrl()
-  const appMediaBaseUrl = DEFAULT_PUBLIC_BASE_URL
+  const appMediaBaseUrl = withBasePath(DEFAULT_PUBLIC_BASE_URL)
 
   if (url.startsWith(`${publicBaseUrl}/`)) {
     return decodeURIComponent(url.slice(publicBaseUrl.length + 1))
@@ -162,8 +162,7 @@ export function extractKeyFromUrl(url: string): string {
     return decodeURIComponent(url.slice(appMediaBaseUrl.length + 1))
   }
 
-  const appOrigin = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
-  const parsedUrl = new URL(url, appOrigin)
+  const parsedUrl = new URL(url, getAbsoluteAppUrl('/').toString())
   const appMediaBasePath = new URL(appMediaBaseUrl, parsedUrl.origin).pathname.replace(/\/$/, '')
   const publicBase = new URL(publicBaseUrl, parsedUrl.origin)
   const basePath = publicBase.pathname.replace(/\/$/, '')

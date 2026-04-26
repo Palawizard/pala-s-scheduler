@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { BarChart3, CalendarDays, FileText, Settings } from 'lucide-react'
 
 import { useFailedPostsCount } from '@/hooks/use-posts'
+import { stripBasePath } from '@/lib/base-path'
 import { cn } from '@/lib/utils'
 
 type SidebarProps = {
@@ -13,7 +14,7 @@ type SidebarProps = {
 }
 
 export function Sidebar({ className, onNavigate }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname = stripBasePath(usePathname())
   const { data: failedCount } = useFailedPostsCount()
 
   const navItems = [

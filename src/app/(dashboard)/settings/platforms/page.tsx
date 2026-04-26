@@ -5,16 +5,17 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { toast } from 'sonner'
 import { PlatformConnectionCard } from '@/components/platforms/platform-connection-card'
+import { withBasePath } from '@/lib/base-path'
 import { PLATFORMS } from '@/types'
 import { PLATFORM_LABELS } from '@/lib/constants'
 import { usePlatforms } from '@/hooks/use-platforms'
 import type { Platform } from '@/types'
 
 const AUTH_URL_MAP: Record<Platform, string> = {
-  YOUTUBE: '/api/auth/signin/google',
-  INSTAGRAM: '/api/platforms/instagram/auth-url',
-  TIKTOK: '/api/platforms/tiktok/auth-url',
-  TWITTER: '/api/platforms/twitter/auth-url',
+  YOUTUBE: withBasePath('/api/auth/signin/google'),
+  INSTAGRAM: withBasePath('/api/platforms/instagram/auth-url'),
+  TIKTOK: withBasePath('/api/platforms/tiktok/auth-url'),
+  TWITTER: withBasePath('/api/platforms/twitter/auth-url'),
 }
 
 const SUCCESS_MESSAGES: Record<string, string> = {
@@ -43,16 +44,16 @@ function PlatformsSettingsContent() {
 
     if (success) {
       toast.success(SUCCESS_MESSAGES[success] ?? 'Compte connecté avec succès')
-      router.replace('/settings/platforms')
+      router.replace(withBasePath('/settings/platforms'))
     } else if (error) {
       toast.error(ERROR_MESSAGES[error] ?? 'Une erreur est survenue')
-      router.replace('/settings/platforms')
+      router.replace(withBasePath('/settings/platforms'))
     }
   }, [searchParams, router])
 
   const handleConnect = useCallback(async (platform: Platform) => {
     if (platform === 'YOUTUBE') {
-      await signIn('google', { callbackUrl: '/settings/platforms?success=youtube' })
+      await signIn('google', { callbackUrl: withBasePath('/settings/platforms?success=youtube') })
       return
     }
 
@@ -67,7 +68,9 @@ function PlatformsSettingsContent() {
   }, [router])
 
   const handleDisconnect = useCallback(async (platform: Platform) => {
-    const res = await fetch(`/api/platforms/${platform.toLowerCase()}`, { method: 'DELETE' })
+    const res = await fetch(withBasePath(`/api/platforms/${platform.toLowerCase()}`), {
+      method: 'DELETE',
+    })
     if (!res.ok) {
       toast.error('Échec de la déconnexion')
       return

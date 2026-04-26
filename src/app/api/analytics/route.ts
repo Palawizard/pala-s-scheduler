@@ -94,7 +94,9 @@ export async function GET(request: NextRequest) {
     select: { platform: true },
     orderBy: { platform: 'asc' },
   })
-  const activePlatforms = connectedPlatforms.map((item) => item.platform)
+  const activePlatforms = connectedPlatforms.map(
+    (item: (typeof connectedPlatforms)[number]) => item.platform
+  )
 
   const snapshots = await db.accountSnapshot.findMany({
     where: { userId: user.id },
@@ -114,25 +116,30 @@ export async function GET(request: NextRequest) {
 
   for (const s of snapshots) {
     const date = toDateString(s.snapshotDate)
+    const snapshotPlatform = s.platform as Platform
     if (s.snapshotDate < since) {
       continue
     }
 
     const followersRow = followersOverTime.find((item) => item.date === date)
     const impressionsRow = impressionsOverTime.find((item) => item.date === date)
-    if (followersRow) followersRow[s.platform] = s.followers
-    if (impressionsRow) impressionsRow[s.platform] = s.impressions
+    if (followersRow) followersRow[snapshotPlatform] = s.followers
+    if (impressionsRow) impressionsRow[snapshotPlatform] = s.impressions
   }
 
   for (const platform of platforms) {
     let current = snapshots
-      .filter((snapshot) => snapshot.platform === platform && snapshot.snapshotDate < since)
+      .filter(
+        (snapshot: (typeof snapshots)[number]) =>
+          snapshot.platform === platform && snapshot.snapshotDate < since
+      )
       .at(-1)
 
     for (let index = 0; index < followersOverTime.length; index++) {
       const date = followersOverTime[index].date
       const snapshot = snapshots.find(
-        (item) => item.platform === platform && toDateString(item.snapshotDate) === date
+        (item: (typeof snapshots)[number]) =>
+          item.platform === platform && toDateString(item.snapshotDate) === date
       )
       if (snapshot) current = snapshot
       if (current) {
