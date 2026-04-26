@@ -7,7 +7,12 @@ import { BarChart3, CalendarDays, FileText, Settings } from 'lucide-react'
 import { useFailedPostsCount } from '@/hooks/use-posts'
 import { cn } from '@/lib/utils'
 
-export function Sidebar() {
+type SidebarProps = {
+  className?: string
+  onNavigate?: () => void
+}
+
+export function Sidebar({ className, onNavigate }: SidebarProps) {
   const pathname = usePathname()
   const { data: failedCount } = useFailedPostsCount()
 
@@ -19,7 +24,12 @@ export function Sidebar() {
   ]
 
   return (
-    <aside className="bg-sidebar border-sidebar-border flex h-screen w-56 shrink-0 flex-col border-r">
+    <aside
+      className={cn(
+        'bg-sidebar border-sidebar-border flex h-dvh w-56 shrink-0 flex-col border-r',
+        className
+      )}
+    >
       <div className="border-sidebar-border flex h-14 items-center border-b px-4">
         <span className="text-sidebar-foreground text-sm font-semibold tracking-tight">
           Pala&apos;s Scheduler
@@ -33,6 +43,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onNavigate}
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                 active
@@ -43,7 +54,7 @@ export function Sidebar() {
               <Icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{label}</span>
               {badge != null && badge > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-xs font-medium text-destructive-foreground">
+                <span className="bg-destructive text-destructive-foreground flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-medium">
                   {badge}
                 </span>
               )}

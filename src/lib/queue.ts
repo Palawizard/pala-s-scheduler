@@ -1,7 +1,9 @@
 import { Queue } from 'bullmq'
 import IORedis from 'ioredis'
 
-export const redisConnection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+import { env } from '@/lib/env'
+
+export const redisConnection = new IORedis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
 })
 
@@ -27,16 +29,24 @@ function jobId(postId: string): string {
   return `post_${postId}`
 }
 
-export async function schedulePostJob(postId: string, userId: string, scheduledAt: Date): Promise<void> {
+export async function schedulePostJob(
+  postId: string,
+  userId: string,
+  scheduledAt: Date
+): Promise<void> {
   const delay = Math.max(0, scheduledAt.getTime() - Date.now())
   const existing = await postSchedulerQueue.getJob(jobId(postId))
   if (existing) {
     await existing.remove()
   }
-  await postSchedulerQueue.add('publish-post', { postId, userId }, {
-    jobId: jobId(postId),
-    delay,
-  })
+  await postSchedulerQueue.add(
+    'publish-post',
+    { postId, userId },
+    {
+      jobId: jobId(postId),
+      delay,
+    }
+  )
 }
 
 export async function cancelPostJob(postId: string): Promise<void> {

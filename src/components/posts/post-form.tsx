@@ -44,7 +44,7 @@ export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormPro
       onSubmit={form.handleSubmit(handleSubmit)}
       className="flex h-[calc(96vh-92px)] min-h-0 flex-col"
     >
-      <div className="grid min-h-0 flex-1 gap-8 overflow-hidden px-6 pb-4 xl:grid-cols-[minmax(0,1fr)_430px]">
+      <div className="grid min-h-0 flex-1 gap-8 overflow-y-auto px-4 pb-4 md:px-6 xl:grid-cols-[minmax(0,1fr)_430px]">
         <div className="flex min-h-0 min-w-0 flex-col gap-3">
           <PlatformSelectionField control={form.control} />
 
@@ -69,7 +69,11 @@ export function PostForm({ initialDate, post, onCancel, onSuccess }: PostFormPro
             errorMessages={errorMessages}
             instagramSelection={instagramSelection}
             onVisibilityChange={updatePlatformVisibility}
-            tiktokDescriptionRegister={hasTiktok && tiktokSelection?.contentType === 'TIKTOK_PHOTO' ? form.register('title') : null}
+            tiktokDescriptionRegister={
+              hasTiktok && tiktokSelection?.contentType === 'TIKTOK_PHOTO'
+                ? form.register('title')
+                : null
+            }
             tiktokSelection={tiktokSelection}
             youtubeSelection={youtubeSelection}
           />

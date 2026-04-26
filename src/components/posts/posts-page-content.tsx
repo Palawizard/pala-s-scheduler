@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { AlertCircle, Edit, Send, Trash2 } from 'lucide-react'
+import { AlertCircle, Edit, FileText, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { PostForm } from '@/components/posts/post-form'
@@ -12,6 +12,9 @@ import { PostStatusBadge } from '@/components/posts/post-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 import {
   useCancelPost,
   useDeletePost,
@@ -30,6 +33,30 @@ import { PLATFORMS, POST_STATUSES, type Platform, type PostStatus } from '@/type
 function formatPostDate(date: string | null): string {
   if (!date) return 'Brouillon'
   return format(new Date(date), 'd MMM yyyy, HH:mm', { locale: fr })
+}
+
+function PostsListSkeleton() {
+  return (
+    <div className="flex flex-col gap-3">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Card key={index}>
+          <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center">
+            <Skeleton className="h-24 w-full rounded-md md:w-40" />
+            <div className="flex-1 space-y-3">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
 }
 
 export function PostsPageContent() {
@@ -95,7 +122,7 @@ export function PostsPageContent() {
         <h1 className="text-xl font-semibold">Publications</h1>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap">
         <select
           className="border-input bg-background h-9 rounded-md border px-3 text-sm"
           value={status}
@@ -123,11 +150,17 @@ export function PostsPageContent() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {isLoading && (
-          <p className="text-muted-foreground text-sm">Chargement des publications...</p>
-        )}
+        {isLoading && <PostsListSkeleton />}
         {!isLoading && posts.length === 0 && (
-          <p className="text-muted-foreground text-sm">Aucune publication.</p>
+          <EmptyState
+            description={
+              status || platform
+                ? 'Aucune publication ne correspond aux filtres sélectionnés.'
+                : 'Créez une publication depuis le calendrier pour la retrouver ici.'
+            }
+            icon={<FileText className="h-8 w-8" />}
+            title="Aucune publication"
+          />
         )}
         {posts.map((post) => (
           <Card key={post.id}>
@@ -167,7 +200,7 @@ export function PostsPageContent() {
                 )}
               </div>
 
-              <div className="flex shrink-0 gap-2">
+              <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex">
                 <Button variant="outline" size="sm" onClick={() => setEditingPost(post)}>
                   <Edit className="h-4 w-4" />
                   Éditer
@@ -182,6 +215,7 @@ export function PostsPageContent() {
                     post.status === 'PUBLISHED'
                   }
                 >
+                  {publishPost.isPending && <Spinner />}
                   <Send className="h-4 w-4" />
                   Publier
                 </Button>
@@ -195,9 +229,16 @@ export function PostsPageContent() {
                     post.status === 'PUBLISHED'
                   }
                 >
+                  {cancelPost.isPending && <Spinner />}
                   Annuler
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleDelete(post)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(post)}
+                  disabled={deletePost.isPending}
+                >
+                  {deletePost.isPending && <Spinner />}
                   <Trash2 className="h-4 w-4" />
                   Supprimer
                 </Button>

@@ -4,9 +4,12 @@ import type { CalendarOptions } from '@fullcalendar/core'
 import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
+import { CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { PostEvent } from '@/components/calendar/post-event'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Skeleton } from '@/components/ui/skeleton'
 import { type PostView, usePosts, useUpdatePost } from '@/hooks/use-posts'
 import { PLATFORM_COLORS } from '@/lib/constants'
 
@@ -66,32 +69,54 @@ export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalenda
   }
 
   return (
-    <div className="min-h-0 flex-1 rounded-lg border bg-white p-3">
-      <FullCalendar
-        plugins={[timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        locale="fr"
-        height="100%"
-        editable
-        selectable
-        nowIndicator
-        events={events}
-        dateClick={handleDateClick}
-        eventClick={handleEventClick}
-        eventDrop={handleEventDrop}
-        eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
-        buttonText={{
-          today: 'Aujourd’hui',
-          week: 'Semaine',
-        }}
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: '',
-        }}
-      />
-      {isLoading && (
-        <div className="text-muted-foreground mt-3 text-sm">Chargement du calendrier...</div>
+    <div className="min-h-0 flex-1 overflow-x-auto rounded-lg border bg-white p-3">
+      {isLoading ? (
+        <div className="flex h-full min-h-[520px] flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-9 w-36" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+          <div className="grid flex-1 grid-cols-7 gap-2">
+            {Array.from({ length: 28 }).map((_, index) => (
+              <Skeleton key={index} className="min-h-24 rounded-md" />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="relative h-full min-h-[520px] min-w-[820px]">
+          <FullCalendar
+            plugins={[timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            locale="fr"
+            height="100%"
+            editable
+            selectable
+            nowIndicator
+            events={events}
+            dateClick={handleDateClick}
+            eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+            eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
+            buttonText={{
+              today: 'Aujourd’hui',
+              week: 'Semaine',
+            }}
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: '',
+            }}
+          />
+          {posts.length === 0 && (
+            <EmptyState
+              className="absolute inset-x-4 top-24 z-10 bg-white/95 shadow-sm backdrop-blur"
+              description="Cliquez sur un créneau du calendrier pour préparer votre première publication."
+              icon={<CalendarDays className="h-8 w-8" />}
+              title="Aucune publication planifiée"
+            />
+          )}
+        </div>
       )}
     </div>
   )
