@@ -40,7 +40,7 @@ async function syncAccountSnapshot(
   userId: string,
   platform: Platform,
   connectedPlatform: ConnectedPlatform
-): Promise<void> {
+): Promise<boolean> {
   let stats = null
   switch (platform) {
     case 'YOUTUBE':
@@ -56,7 +56,7 @@ async function syncAccountSnapshot(
       stats = await fetchTwitterAccountStats(connectedPlatform)
       break
   }
-  if (!stats) return
+  if (!stats) return false
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -66,13 +66,15 @@ async function syncAccountSnapshot(
     create: { userId, platform, snapshotDate: today, ...stats },
     update: { ...stats, fetchedAt: new Date() },
   })
+
+  return true
 }
 
 async function syncPlatformPosts(
   userId: string,
   platform: Platform,
   connectedPlatform: ConnectedPlatform
-): Promise<void> {
+): Promise<number> {
   let posts: Awaited<ReturnType<typeof fetchYoutubePosts>> = []
   switch (platform) {
     case 'YOUTUBE':
@@ -108,6 +110,8 @@ async function syncPlatformPosts(
       },
     })
   }
+
+  return posts.length
 }
 
 export type SyncResult = {
@@ -127,7 +131,8 @@ export async function syncUserAnalytics(userId: string): Promise<SyncResult> {
 
   for (const cp of connectedPlatforms) {
     try {
-      await syncAccountSnapshot(userId, cp.platform, cp)
+      const hasSnapshot = await syncAccountSnapshot(userId, cp.platform, cp)
+      if (hasSnapshot) synced++
     } catch (err) {
       console.error(
         `[analytics] account snapshot failed for ${cp.platform}:`,
@@ -137,7 +142,7 @@ export async function syncUserAnalytics(userId: string): Promise<SyncResult> {
     }
 
     try {
-      await syncPlatformPosts(userId, cp.platform, cp)
+      synced += await syncPlatformPosts(userId, cp.platform, cp)
     } catch (err) {
       console.error(
         `[analytics] platform posts sync failed for ${cp.platform}:`,
