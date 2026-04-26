@@ -69,7 +69,7 @@ export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalenda
   }
 
   return (
-    <div className="min-h-0 flex-1 rounded-lg border bg-white p-3">
+    <div className="min-h-0 flex-1 overflow-x-auto rounded-lg border bg-white p-3">
       {isLoading ? (
         <div className="flex h-full min-h-[520px] flex-col gap-3">
           <div className="flex items-center justify-between">
@@ -84,7 +84,7 @@ export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalenda
           </div>
         </div>
       ) : (
-        <div className="relative h-full min-h-[520px]">
+        <div className="relative h-full min-h-[520px] min-w-[820px]">
           <FullCalendar
             plugins={[timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"

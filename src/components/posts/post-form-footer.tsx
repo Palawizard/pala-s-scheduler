@@ -26,7 +26,7 @@ export function PostFormFooter({
   scheduledAt,
 }: PostFormFooterProps) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t bg-white px-6 py-4">
+    <div className="flex flex-col-reverse gap-3 border-t bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
       {onCancel ? (
         <Button type="button" variant="outline" onClick={onCancelClick} disabled={pending}>
           Annuler
@@ -34,7 +34,7 @@ export function PostFormFooter({
       ) : (
         <span />
       )}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2">
         <div className="hidden items-center gap-2 rounded-md border px-3 py-2 text-sm sm:flex">
           <Calendar className="h-4 w-4" />
           {formatScheduledAtDisplay(scheduledAt)}

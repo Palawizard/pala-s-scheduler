@@ -122,7 +122,7 @@ export function PostsPageContent() {
         <h1 className="text-xl font-semibold">Publications</h1>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap">
         <select
           className="border-input bg-background h-9 rounded-md border px-3 text-sm"
           value={status}
@@ -200,7 +200,7 @@ export function PostsPageContent() {
                 )}
               </div>
 
-              <div className="flex shrink-0 gap-2">
+              <div className="grid shrink-0 grid-cols-2 gap-2 sm:flex">
                 <Button variant="outline" size="sm" onClick={() => setEditingPost(post)}>
                   <Edit className="h-4 w-4" />
                   Éditer

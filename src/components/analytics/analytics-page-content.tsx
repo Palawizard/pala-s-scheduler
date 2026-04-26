@@ -42,9 +42,9 @@ export function AnalyticsPageContent() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold">Analytiques</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex rounded-md border">
             {PERIODS.map(({ label, value }) => (
               <button
