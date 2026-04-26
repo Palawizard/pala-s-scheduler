@@ -58,21 +58,45 @@ export type AnalyticsData = {
   }
 }
 
+async function readJsonSafely<T>(res: Response): Promise<T | null> {
+  const text = await res.text()
+  if (!text) return null
+
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    return null
+  }
+}
+
 async function fetchAnalytics(period: number): Promise<AnalyticsData> {
   const res = await fetch(withBasePath(`/api/analytics?period=${period}`))
-  const body = (await res.json()) as { data?: AnalyticsData; error?: unknown }
-  if (!res.ok) throw new Error(typeof body.error === 'string' ? body.error : 'Erreur analytiques')
+  const body = await readJsonSafely<{ data?: AnalyticsData; error?: unknown }>(res)
+  if (!res.ok) {
+    throw new Error(
+      typeof body?.error === 'string' ? body.error : 'Erreur analytiques'
+    )
+  }
+  if (!body?.data) {
+    throw new Error('Réponse invalide du serveur analytics')
+  }
   return body.data as AnalyticsData
 }
 
 async function triggerSync(): Promise<{ synced: number; skipped: number; errors: number }> {
   const res = await fetch(withBasePath('/api/analytics/sync'), { method: 'POST' })
-  const body = (await res.json()) as {
+  const body = await readJsonSafely<{
     data?: { synced: number; skipped: number; errors: number }
     error?: unknown
+  }>(res)
+  if (!res.ok) {
+    throw new Error(
+      typeof body?.error === 'string' ? body.error : 'Synchronisation impossible'
+    )
   }
-  if (!res.ok)
-    throw new Error(typeof body.error === 'string' ? body.error : 'Synchronisation impossible')
+  if (!body?.data) {
+    throw new Error('Réponse invalide du serveur pendant la synchronisation')
+  }
   return body.data!
 }
 
