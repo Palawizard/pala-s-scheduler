@@ -7,32 +7,30 @@ type InstagramInsight = {
   values?: { value?: number }[]
 }
 
-function sumInsight(insights: InstagramInsight[], metric: string): number {
-  return (
-    insights
-      .find((insight) => insight.name === metric)
-      ?.values?.reduce((sum, item) => sum + (item.value ?? 0), 0) ?? 0
-  )
+function sumInsight(insight: InstagramInsight | null): number {
+  return insight?.values?.reduce((sum, item) => sum + (item.value ?? 0), 0) ?? 0
 }
 
-async function fetchInstagramInsights(
+async function fetchInstagramInsight(
   mediaId: string,
   token: string,
-  metrics: string[]
-): Promise<InstagramInsight[]> {
+  metric: string
+): Promise<InstagramInsight | null> {
   const params = new URLSearchParams({
-    metric: metrics.join(','),
+    metric,
     access_token: token,
   })
   const res = await fetch(`https://graph.instagram.com/v22.0/${mediaId}/insights?${params}`)
 
   if (!res.ok) {
-    console.warn(`[analytics] instagram insights fetch failed (${res.status}) for ${mediaId}`)
-    return []
+    if (res.status !== 400) {
+      console.warn(`[analytics] instagram ${metric} insight failed (${res.status}) for ${mediaId}`)
+    }
+    return null
   }
 
   const body = (await res.json()) as { data?: InstagramInsight[] }
-  return body.data ?? []
+  return body.data?.[0] ?? null
 }
 
 export async function fetchInstagramStats(
@@ -55,22 +53,18 @@ export async function fetchInstagramStats(
     comments_count?: number
     media_type?: string
   }
-  const mediaType = body.media_type?.toUpperCase()
-  const metrics =
-    mediaType === 'VIDEO' || mediaType === 'REELS'
-      ? ['reach', 'shares', 'saved', 'views']
-      : ['impressions', 'reach', 'shares', 'saved']
-  const insights = await fetchInstagramInsights(mediaId, platform.accessToken, metrics)
-  const views = sumInsight(insights, 'views')
-  const impressions = sumInsight(insights, 'impressions') || views
+  const views = sumInsight(await fetchInstagramInsight(mediaId, platform.accessToken, 'views'))
+  const reach = sumInsight(await fetchInstagramInsight(mediaId, platform.accessToken, 'reach'))
+  const shares = sumInsight(await fetchInstagramInsight(mediaId, platform.accessToken, 'shares'))
+  const saves = sumInsight(await fetchInstagramInsight(mediaId, platform.accessToken, 'saved'))
 
   return {
     views,
     likes: body.like_count ?? 0,
     comments: body.comments_count ?? 0,
-    shares: sumInsight(insights, 'shares'),
-    saves: sumInsight(insights, 'saved'),
-    reach: sumInsight(insights, 'reach'),
-    impressions,
+    shares,
+    saves,
+    reach,
+    impressions: views,
   }
 }

@@ -60,7 +60,12 @@ export async function fetchTikTokAccountStats(
   })
   if (!res.ok) {
     console.warn(`[analytics] tiktok account stats failed (${res.status})`)
-    return null
+    const posts = await fetchTikTokPosts(platform)
+    return {
+      followers: 0,
+      impressions: posts.reduce((sum, post) => sum + post.impressions, 0),
+      reach: 0,
+    }
   }
   const body = (await res.json()) as {
     data?: { user?: { follower_count?: number; likes_count?: number } }

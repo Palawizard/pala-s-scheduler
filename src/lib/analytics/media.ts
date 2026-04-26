@@ -93,24 +93,25 @@ export async function fetchInstagramPosts(
       comments_count?: number
     }[]
   }
-  return Promise.all(
-    (body.data ?? []).map(async (item) => {
-      const stats = await fetchInstagramStats(item.id, platform)
-      return {
-        platformPostId: item.id,
-        caption: item.caption ?? null,
-        mediaType: item.media_type?.toLowerCase() ?? null,
-        thumbnailUrl: item.thumbnail_url ?? null,
-        publishedAt: item.timestamp ? new Date(item.timestamp) : null,
-        views: stats?.views ?? 0,
-        likes: stats?.likes ?? item.like_count ?? 0,
-        comments: stats?.comments ?? item.comments_count ?? 0,
-        shares: stats?.shares ?? 0,
-        impressions: stats?.impressions ?? 0,
-        reach: stats?.reach ?? 0,
-      }
+  const posts: PlatformMediaPost[] = []
+  for (const item of body.data ?? []) {
+    const stats = await fetchInstagramStats(item.id, platform)
+    posts.push({
+      platformPostId: item.id,
+      caption: item.caption ?? null,
+      mediaType: item.media_type?.toLowerCase() ?? null,
+      thumbnailUrl: item.thumbnail_url ?? null,
+      publishedAt: item.timestamp ? new Date(item.timestamp) : null,
+      views: stats?.views ?? 0,
+      likes: stats?.likes ?? item.like_count ?? 0,
+      comments: stats?.comments ?? item.comments_count ?? 0,
+      shares: stats?.shares ?? 0,
+      impressions: stats?.impressions ?? 0,
+      reach: stats?.reach ?? 0,
     })
-  )
+  }
+
+  return posts
 }
 
 export async function fetchTikTokPosts(platform: ConnectedPlatform): Promise<PlatformMediaPost[]> {

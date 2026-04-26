@@ -18,6 +18,8 @@ const TIKTOK_CONTENT_INIT = 'https://open.tiktokapis.com/v2/post/publish/content
 const TIKTOK_PUBLISH_STATUS = 'https://open.tiktokapis.com/v2/post/publish/status/fetch/'
 
 const CALLBACK_URL = () => `${process.env.NEXTAUTH_URL}/api/platforms/tiktok/callback`
+const TIKTOK_BASE_SCOPES = ['user.info.basic', 'video.upload', 'video.publish']
+const TIKTOK_ANALYTICS_SCOPES = ['user.info.stats', 'video.list']
 
 type TikTokTokenResponse = {
   access_token: string
@@ -38,11 +40,16 @@ function throwTikTokApiError(body: { error?: TikTokApiError }): never {
 }
 
 export function getTikTokAuthUrl(state: string, codeChallenge: string): string {
+  const scopes =
+    process.env.TIKTOK_ENABLE_ANALYTICS_SCOPES === 'true'
+      ? [...TIKTOK_BASE_SCOPES, ...TIKTOK_ANALYTICS_SCOPES]
+      : TIKTOK_BASE_SCOPES
+
   const params = new URLSearchParams({
     client_key: process.env.TIKTOK_CLIENT_KEY!,
     redirect_uri: CALLBACK_URL(),
     response_type: 'code',
-    scope: 'user.info.basic,user.info.stats,video.list,video.upload,video.publish',
+    scope: scopes.join(','),
     state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
