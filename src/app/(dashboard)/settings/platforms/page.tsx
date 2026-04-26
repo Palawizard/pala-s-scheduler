@@ -44,10 +44,10 @@ function PlatformsSettingsContent() {
 
     if (success) {
       toast.success(SUCCESS_MESSAGES[success] ?? 'Compte connecté avec succès')
-      router.replace(withBasePath('/settings/platforms'))
+      router.replace('/settings/platforms')
     } else if (error) {
       toast.error(ERROR_MESSAGES[error] ?? 'Une erreur est survenue')
-      router.replace(withBasePath('/settings/platforms'))
+      router.replace('/settings/platforms')
     }
   }, [searchParams, router])
 
