@@ -13,8 +13,8 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | 3 - Calendar     | TERMINE | `feat/calendar`     | 2         |
 | 4 - Integrations | TERMINE | `feat/integrations` | 2         | merge sur `dev` le 26/04/2026 |
 | 5 - Scheduler    | TERMINE | `feat/scheduler`    | 3, 4      |
-| 6 - Analytics    | A FAIRE | `feat/analytics`    | 4, 5      |
-| 7 - Polish       | A FAIRE | `feat/polish`       | 6         |
+| 6 - Analytics    | TERMINE | `feat/analytics`    | 4, 5      | merge sur `dev` le 26/04/2026 |
+| 7 - Polish       | TERMINE | `feat/polish`       | 6         |
 
 ---
 
@@ -443,7 +443,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 7 : Polish & Production Readiness — A FAIRE
+## Epic 7 : Polish & Production Readiness — TERMINE
 
 **Branche :** `feat/polish`
 **Depend de :** Epic 6 (merge sur `dev`)
@@ -451,21 +451,21 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ### Sous-etapes
 
-- [ ] **7.1** Skeletons de chargement + spinners sur les boutons d'action
+- [x] **7.1** Skeletons de chargement + spinners sur les boutons d'action
   - `feat(ui): add loading skeletons and button spinners`
-- [ ] **7.2** Etats vides (calendrier, liste posts, analytics)
+- [x] **7.2** Etats vides (calendrier, liste posts, analytics)
   - `feat(ui): add empty states for calendar, posts, and analytics`
-- [ ] **7.3** Notifications toast (sonner) sur toutes les actions
+- [x] **7.3** Notifications toast (sonner) sur toutes les actions
   - `feat(ui): add toast notifications for user actions`
-- [ ] **7.4** Responsive mobile (sidebar en drawer, calendrier scrollable)
+- [x] **7.4** Responsive mobile (sidebar en drawer, calendrier scrollable)
   - `style(layout): make sidebar and calendar responsive on mobile`
-- [ ] **7.5** Error boundary globale + page 404
+- [x] **7.5** Error boundary globale + page 404
   - `feat(ui): add global error boundary and not found page`
-- [ ] **7.6** Docker Compose prod + Dockerfile multi-stage (app + worker)
+- [x] **7.6** Docker Compose prod + Dockerfile multi-stage (app + worker)
   - `chore(config): add production docker setup`
-- [ ] **7.7** Validation des variables d'environnement au demarrage (`src/lib/env.ts`)
+- [x] **7.7** Validation des variables d'environnement au demarrage (`src/lib/env.ts`)
   - `feat(config): add startup environment variable validation`
-- [ ] **7.8** README
+- [x] **7.8** README
   - `docs(config): add project readme with setup instructions`
 
 ### Plan de Test - Epic 7
