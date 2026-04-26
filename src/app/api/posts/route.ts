@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { schedulePostJob } from '@/lib/queue'
 import { createPostSchema, postQuerySchema } from '@/lib/posts/schemas'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
 import type { Platform, PostContentType, PostVisibility } from '@/types'
@@ -107,6 +108,10 @@ export async function POST(request: NextRequest) {
     },
     include: postInclude,
   })
+
+  if (post.scheduledAt) {
+    await schedulePostJob(post.id, user.id, post.scheduledAt)
+  }
 
   return NextResponse.json({ data: serializePost(post) }, { status: 201 })
 }

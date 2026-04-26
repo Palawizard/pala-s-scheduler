@@ -22,3 +22,26 @@ export type PostSchedulerJobData = {
   postId: string
   userId: string
 }
+
+function jobId(postId: string): string {
+  return `post:${postId}`
+}
+
+export async function schedulePostJob(postId: string, userId: string, scheduledAt: Date): Promise<void> {
+  const delay = Math.max(0, scheduledAt.getTime() - Date.now())
+  const existing = await postSchedulerQueue.getJob(jobId(postId))
+  if (existing) {
+    await existing.remove()
+  }
+  await postSchedulerQueue.add('publish-post', { postId, userId }, {
+    jobId: jobId(postId),
+    delay,
+  })
+}
+
+export async function cancelPostJob(postId: string): Promise<void> {
+  const existing = await postSchedulerQueue.getJob(jobId(postId))
+  if (existing) {
+    await existing.remove()
+  }
+}
