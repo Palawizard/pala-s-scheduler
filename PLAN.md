@@ -12,7 +12,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | 2 - Auth         | TERMINE | `feat/auth`         | 1         |
 | 3 - Calendar     | TERMINE | `feat/calendar`     | 2         |
 | 4 - Integrations | TERMINE | `feat/integrations` | 2         | merge sur `dev` le 26/04/2026 |
-| 5 - Scheduler    | A FAIRE | `feat/scheduler`    | 3, 4      |
+| 5 - Scheduler    | TERMINE | `feat/scheduler`    | 3, 4      |
 | 6 - Analytics    | A FAIRE | `feat/analytics`    | 4, 5      |
 | 7 - Polish       | A FAIRE | `feat/polish`       | 6         |
 
@@ -316,15 +316,15 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ### Sous-etapes
 
-- [ ] **5.1** Worker BullMQ : consumer qui appelle `getPlatformClient(platform).publish(...)`
+- [x] **5.1** Worker BullMQ : consumer qui appelle `getPlatformClient(platform).publish(...)`
   - `feat(worker): implement bullmq consumer for scheduled post publishing`
-- [ ] **5.2** Enqueue job BullMQ a la creation/modification d'un post schedule
+- [x] **5.2** Enqueue job BullMQ a la creation/modification d'un post schedule
   - `feat(worker): enqueue bullmq job on post creation and update`
-- [ ] **5.3** Annulation et reprogrammation des jobs
+- [x] **5.3** Annulation et reprogrammation des jobs
   - `feat(worker): handle job cancellation and rescheduling`
-- [ ] **5.4** Retry (3 tentatives, backoff exponentiel) + badge echec dans la sidebar
+- [x] **5.4** Retry (3 tentatives, backoff exponentiel) + badge echec dans la sidebar
   - `feat(worker): add retry logic and failure notification`
-- [ ] **5.5** Refresh proactif des tokens avant publication
+- [x] **5.5** Refresh proactif des tokens avant publication
   - `feat(worker): add proactive token refresh before publishing`
 
 ### Plan de Test - Epic 5
