@@ -74,6 +74,8 @@ declare module 'next-auth' {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  basePath: withBasePath('/api/auth'),
+  trustHost: true,
   adapter: PrismaAdapter(db),
   providers: [
     Google({
