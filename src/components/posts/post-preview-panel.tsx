@@ -1,6 +1,7 @@
 'use client'
 
-import { Heart, Info, MessageCircle, Send } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Heart, Info, MessageCircle, Pause, Play, Send } from 'lucide-react'
 
 import type { PlatformSelection } from '@/components/posts/platform-selector'
 
@@ -27,6 +28,21 @@ function getPlatformInitials(platform: PlatformSelection['platform']): string {
 }
 
 export function PostPreviewPanel({ caption, mediaUrl, platforms, title }: PostPreviewPanelProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [playing, setPlaying] = useState(false)
+
+  function togglePlay() {
+    const video = videoRef.current
+    if (!video) return
+    if (video.paused) {
+      void video.play()
+      setPlaying(true)
+    } else {
+      video.pause()
+      setPlaying(false)
+    }
+  }
+
   return (
     <aside className="hidden min-w-0 border-l pl-8 xl:block">
       <div className="sticky top-0 space-y-4">
@@ -62,13 +78,31 @@ export function PostPreviewPanel({ caption, mediaUrl, platforms, title }: PostPr
               />
             )}
             {mediaUrl && isVideoUrl(mediaUrl) && (
-              <video
-                src={mediaUrl}
-                className="absolute inset-0 h-full w-full object-cover"
-                muted
-                playsInline
-                preload="metadata"
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  muted
+                  playsInline
+                  preload="metadata"
+                  onEnded={() => setPlaying(false)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-0 flex items-center justify-center transition-opacity hover:opacity-100"
+                  style={{ opacity: playing ? 0 : 1 }}
+                  onClick={togglePlay}
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/40">
+                    {playing ? (
+                      <Pause className="h-6 w-6 fill-white text-white" />
+                    ) : (
+                      <Play className="h-6 w-6 fill-white text-white" />
+                    )}
+                  </span>
+                </button>
+              </>
             )}
             {!mediaUrl && <span className="text-sm text-white/70">Aucun média</span>}
             <div className="absolute right-4 bottom-20 flex flex-col items-center gap-5">
