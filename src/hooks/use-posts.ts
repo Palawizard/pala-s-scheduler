@@ -125,6 +125,15 @@ export function usePosts(filters?: PostsFilters) {
   })
 }
 
+export function useFailedPostsCount() {
+  return useQuery({
+    queryKey: ['posts', { status: 'FAILED' }],
+    queryFn: () => fetchPosts({ status: 'FAILED' }),
+    select: (data) => data.length,
+    refetchInterval: 30_000,
+  })
+}
+
 export function usePost(id: string) {
   return useQuery({
     queryKey: ['posts', id],
