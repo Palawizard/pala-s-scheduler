@@ -193,7 +193,9 @@ async function resizeImageForTikTok(
     return { url: image.publicUrl, tempKey: null }
   }
 
-  console.log(`[TikTok] resizing image from ${width}x${height} to fit ${TIKTOK_MAX_WIDTH}x${TIKTOK_MAX_HEIGHT}`)
+  console.log(
+    `[TikTok] resizing image from ${width}x${height} to fit ${TIKTOK_MAX_WIDTH}x${TIKTOK_MAX_HEIGHT}`
+  )
 
   const resized = await sharp(image.buffer)
     .resize(TIKTOK_MAX_WIDTH, TIKTOK_MAX_HEIGHT, { fit: 'inside', withoutEnlargement: true })
