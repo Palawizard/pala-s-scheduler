@@ -13,7 +13,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | 3 - Calendar     | TERMINE | `feat/calendar`     | 2         |
 | 4 - Integrations | TERMINE | `feat/integrations` | 2         | merge sur `dev` le 26/04/2026 |
 | 5 - Scheduler    | TERMINE | `feat/scheduler`    | 3, 4      |
-| 6 - Analytics    | A FAIRE | `feat/analytics`    | 4, 5      |
+| 6 - Analytics    | TERMINE | `feat/analytics`    | 4, 5      |
 | 7 - Polish       | A FAIRE | `feat/polish`       | 6         |
 
 ---
@@ -382,19 +382,19 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ### Sous-etapes
 
-- [ ] **6.1** Fonctions de fetch stats par plateforme + route `POST /api/analytics/sync`
+- [x] **6.1** Fonctions de fetch stats par plateforme + route `POST /api/analytics/sync`
   - `feat(analytics): add per-platform stats fetching and sync route`
-- [ ] **6.2** Job BullMQ recurrent : synchro des stats toutes les 6 heures
+- [x] **6.2** Job BullMQ recurrent : synchro des stats toutes les 6 heures
   - `feat(worker): add recurring analytics sync job`
-- [ ] **6.3** Routes `GET /api/analytics` et `GET /api/analytics/[platform]`
+- [x] **6.3** Routes `GET /api/analytics` et `GET /api/analytics/[platform]`
   - `feat(analytics): add aggregated and per-platform analytics routes`
-- [ ] **6.4** Cartes KPI globales (vues, engagement, reach, posts publies)
+- [x] **6.4** Cartes KPI globales (vues, engagement, reach, posts publies)
   - `feat(analytics): add global kpi cards to analytics page`
-- [ ] **6.5** Graphique d'engagement dans le temps (Recharts, filtres 7j/30j/90j)
+- [x] **6.5** Graphique d'engagement dans le temps (Recharts, filtres 7j/30j/90j)
   - `feat(analytics): add engagement over time line chart`
-- [ ] **6.6** Cartes stats par plateforme + bar chart comparatif
+- [x] **6.6** Cartes stats par plateforme + bar chart comparatif
   - `feat(analytics): add per-platform stats cards and comparison chart`
-- [ ] **6.7** Tableau de performance des posts (tri par vues/likes)
+- [x] **6.7** Tableau de performance des posts (tri par vues/likes)
   - `feat(analytics): add posts performance table with sorting`
 
 ### Plan de Test - Epic 6
