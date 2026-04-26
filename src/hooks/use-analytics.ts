@@ -4,52 +4,60 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type { Platform } from '@/types'
 
-export type AnalyticsKpis = {
-  totalViews: number
-  totalLikes: number
-  totalComments: number
-  totalShares: number
-  publishedPosts: number
-}
-
-export type EngagementDay = {
-  date: string
-  views: number
-  likes: number
-  comments: number
-}
-
-export type PlatformStats = {
+export type AccountPlatformStats = {
   platform: Platform
-  views: number
-  likes: number
-  comments: number
-  shares: number
-  saves: number
-  reach: number
+  followers: number
   impressions: number
-  postsCount: number
 }
 
-export type TopPost = {
-  postId: string
-  postPlatformId: string
+export type FollowersDay = {
+  date: string
+  [platform: string]: string | number
+}
+
+export type PostPlatformTotals = {
   platform: Platform
-  title: string | null
+  interactions: number
+  postsCount: number
+  impressions: number
+}
+
+export type PlatformPostItem = {
+  id: string
+  platform: Platform
   caption: string | null
+  mediaType: string | null
   thumbnailUrl: string | null
   publishedAt: string | null
   views: number
   likes: number
   comments: number
+  shares: number
+  impressions: number
+  reach: number
+}
+
+export type DayValue = {
+  date: string
+  value: number
 }
 
 export type AnalyticsData = {
   period: number
-  kpis: AnalyticsKpis
-  engagementByDay: EngagementDay[]
-  byPlatform: PlatformStats[]
-  topPosts: TopPost[]
+  account: {
+    byPlatform: AccountPlatformStats[]
+    followersOverTime: FollowersDay[]
+    totalFollowers: number
+    totalImpressions: number
+  }
+  posts: {
+    byPlatform: PostPlatformTotals[]
+    interactionsByDay: DayValue[]
+    postsByDay: DayValue[]
+    totalInteractions: number
+    totalPostsCount: number
+    items: PlatformPostItem[]
+  }
 }
 
 async function fetchAnalytics(period: number): Promise<AnalyticsData> {

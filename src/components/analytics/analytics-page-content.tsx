@@ -4,10 +4,8 @@ import { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { EngagementChart } from '@/components/analytics/engagement-chart'
-import { KpiCards } from '@/components/analytics/kpi-cards'
-import { PlatformStatsSection } from '@/components/analytics/platform-stats'
-import { PostsPerformanceTable } from '@/components/analytics/posts-table'
+import { AccountSection } from '@/components/analytics/account-section'
+import { PostsSection } from '@/components/analytics/posts-section'
 import { Button } from '@/components/ui/button'
 import { useAnalytics, useSyncAnalytics } from '@/hooks/use-analytics'
 import { cn } from '@/lib/utils'
@@ -26,7 +24,7 @@ export function AnalyticsPageContent() {
   async function handleSync() {
     try {
       const result = await sync.mutateAsync()
-      toast.success(`${result.synced} publication${result.synced !== 1 ? 's' : ''} synchronisée${result.synced !== 1 ? 's' : ''}`)
+      toast.success(`Synchronisation terminée — ${result.synced} mis à jour`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Synchronisation impossible')
     }
@@ -61,20 +59,37 @@ export function AnalyticsPageContent() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-muted h-24 animate-pulse rounded-lg" />
-            ))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-muted h-28 animate-pulse rounded-lg" />
+            <div className="bg-muted h-28 animate-pulse rounded-lg" />
           </div>
-          <div className="bg-muted h-64 animate-pulse rounded-lg" />
+          <div className="bg-muted h-52 animate-pulse rounded-lg" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-muted h-28 animate-pulse rounded-lg" />
+            <div className="bg-muted h-28 animate-pulse rounded-lg" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-muted h-52 animate-pulse rounded-lg" />
+            <div className="bg-muted h-52 animate-pulse rounded-lg" />
+          </div>
         </div>
       ) : !data ? null : (
-        <div className="space-y-6">
-          <KpiCards kpis={data.kpis} />
-          <EngagementChart data={data.engagementByDay} />
-          <PlatformStatsSection platforms={data.byPlatform} />
-          <PostsPerformanceTable posts={data.topPosts} />
+        <div className="space-y-10">
+          <AccountSection
+            byPlatform={data.account.byPlatform}
+            followersOverTime={data.account.followersOverTime}
+            totalFollowers={data.account.totalFollowers}
+            totalImpressions={data.account.totalImpressions}
+          />
+          <PostsSection
+            byPlatform={data.posts.byPlatform}
+            interactionsByDay={data.posts.interactionsByDay}
+            postsByDay={data.posts.postsByDay}
+            totalInteractions={data.posts.totalInteractions}
+            totalPostsCount={data.posts.totalPostsCount}
+            items={data.posts.items}
+          />
         </div>
       )}
     </div>

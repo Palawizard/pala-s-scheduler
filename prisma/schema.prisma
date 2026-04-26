@@ -21,6 +21,8 @@ model User {
   sessions           Session[]
   posts              Post[]
   connectedPlatforms ConnectedPlatform[]
+  accountSnapshots   AccountSnapshot[]
+  platformPosts      PlatformPost[]
 }
 
 model Account {
@@ -129,6 +131,44 @@ model PostAnalytics {
 
   @@index([postPlatformId])
   @@index([fetchedAt])
+}
+
+model AccountSnapshot {
+  id           String   @id @default(cuid())
+  userId       String
+  platform     Platform
+  followers    Int      @default(0)
+  impressions  Int      @default(0)
+  reach        Int      @default(0)
+  snapshotDate DateTime @db.Date
+  fetchedAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, snapshotDate])
+  @@index([userId, platform])
+}
+
+model PlatformPost {
+  id             String    @id @default(cuid())
+  userId         String
+  platform       Platform
+  platformPostId String
+  caption        String?   @db.Text
+  mediaType      String?
+  thumbnailUrl   String?
+  publishedAt    DateTime?
+  views          Int       @default(0)
+  likes          Int       @default(0)
+  comments       Int       @default(0)
+  shares         Int       @default(0)
+  impressions    Int       @default(0)
+  reach          Int       @default(0)
+  fetchedAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, platformPostId])
+  @@index([userId, platform])
+  @@index([userId, publishedAt])
 }
 
 enum Platform {

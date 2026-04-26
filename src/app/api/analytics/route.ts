@@ -15,117 +15,108 @@ function toDateString(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
+function buildDayMap(period: number): Map<string, number> {
+  const map = new Map<string, number>()
+  for (let i = period - 1; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    map.set(toDateString(d), 0)
+  }
+  return map
+}
+
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-  }
+  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
   const rawPeriod = request.nextUrl.searchParams.get('period')
   const period = [7, 30, 90].includes(Number(rawPeriod)) ? Number(rawPeriod) : 30
   const since = getPeriodStart(period)
 
-  const postPlatforms = await db.postPlatform.findMany({
-    where: {
-      post: { userId: user.id, publishedAt: { gte: since } },
-      status: 'PUBLISHED',
-    },
-    include: {
-      post: { select: { id: true, title: true, caption: true, thumbnailUrl: true, publishedAt: true } },
-      analytics: {
-        orderBy: { fetchedAt: 'desc' },
-        take: 1,
-      },
-    },
+  // Account snapshots — latest per platform for current followers
+  const snapshots = await db.accountSnapshot.findMany({
+    where: { userId: user.id, snapshotDate: { gte: since } },
+    orderBy: { snapshotDate: 'asc' },
   })
 
-  // KPIs — sum of latest analytics per post-platform
-  let totalViews = 0
-  let totalLikes = 0
-  let totalComments = 0
-  let totalShares = 0
-  for (const pp of postPlatforms) {
-    const a = pp.analytics[0]
-    if (a) {
-      totalViews += a.views
-      totalLikes += a.likes
-      totalComments += a.comments
-      totalShares += a.shares
+  // Followers per platform (latest snapshot)
+  const latestSnapByPlatform = new Map<Platform, { followers: number; impressions: number }>()
+  for (const s of snapshots) {
+    latestSnapByPlatform.set(s.platform, { followers: s.followers, impressions: s.impressions })
+  }
+
+  // Followers over time (one value per day per platform)
+  const followersOverTime: Record<string, Record<string, number>> = {}
+  for (const s of snapshots) {
+    const date = toDateString(s.snapshotDate)
+    if (!followersOverTime[date]) followersOverTime[date] = {}
+    followersOverTime[date][s.platform] = s.followers
+  }
+
+  // All platform posts in period
+  const platformPosts = await db.platformPost.findMany({
+    where: { userId: user.id, publishedAt: { gte: since } },
+    orderBy: { publishedAt: 'desc' },
+  })
+
+  // Interactions by day
+  const interactionsByDay = buildDayMap(period)
+  for (const p of platformPosts) {
+    const date = toDateString(p.publishedAt ?? new Date())
+    const existing = interactionsByDay.get(date)
+    if (existing !== undefined) {
+      interactionsByDay.set(date, existing + p.likes + p.comments + p.shares)
     }
   }
 
-  // Engagement by day (group by publishedAt date)
-  const byDayMap = new Map<string, { views: number; likes: number; comments: number }>()
-  for (let i = period - 1; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    byDayMap.set(toDateString(d), { views: 0, likes: 0, comments: 0 })
+  // Posts count by day
+  const postsByDay = buildDayMap(period)
+  for (const p of platformPosts) {
+    const date = toDateString(p.publishedAt ?? new Date())
+    const existing = postsByDay.get(date)
+    if (existing !== undefined) postsByDay.set(date, existing + 1)
   }
-  for (const pp of postPlatforms) {
-    const date = toDateString(pp.post.publishedAt ?? new Date())
-    const entry = byDayMap.get(date)
-    if (!entry) continue
-    const a = pp.analytics[0]
-    if (a) {
-      entry.views += a.views
-      entry.likes += a.likes
-      entry.comments += a.comments
-    }
-  }
-  const engagementByDay = Array.from(byDayMap.entries()).map(([date, v]) => ({ date, ...v }))
 
-  // Per-platform aggregation
-  const platformMap = new Map<Platform, { views: number; likes: number; comments: number; shares: number; saves: number; reach: number; impressions: number; postsCount: number }>()
-  for (const pp of postPlatforms) {
-    const current = platformMap.get(pp.platform) ?? { views: 0, likes: 0, comments: 0, shares: 0, saves: 0, reach: 0, impressions: 0, postsCount: 0 }
+  // Per platform totals
+  const platformTotals = new Map<Platform, { interactions: number; postsCount: number; impressions: number }>()
+  for (const p of platformPosts) {
+    const current = platformTotals.get(p.platform) ?? { interactions: 0, postsCount: 0, impressions: 0 }
     current.postsCount++
-    const a = pp.analytics[0]
-    if (a) {
-      current.views += a.views
-      current.likes += a.likes
-      current.comments += a.comments
-      current.shares += a.shares
-      current.saves += a.saves
-      current.reach += a.reach
-      current.impressions += a.impressions
-    }
-    platformMap.set(pp.platform, current)
+    current.interactions += p.likes + p.comments + p.shares
+    current.impressions += p.impressions
+    platformTotals.set(p.platform, current)
   }
-  const byPlatform = Array.from(platformMap.entries()).map(([platform, stats]) => ({ platform, ...stats }))
-
-  // Top posts by views, then likes
-  const topPosts = postPlatforms
-    .map((pp) => {
-      const a = pp.analytics[0]
-      return {
-        postId: pp.post.id,
-        postPlatformId: pp.id,
-        platform: pp.platform,
-        title: pp.post.title,
-        caption: pp.post.caption,
-        thumbnailUrl: pp.post.thumbnailUrl,
-        publishedAt: pp.post.publishedAt,
-        views: a?.views ?? 0,
-        likes: a?.likes ?? 0,
-        comments: a?.comments ?? 0,
-      }
-    })
-    .sort((a, b) => b.views - a.views || b.likes - a.likes)
-    .slice(0, 20)
 
   return NextResponse.json({
     data: {
       period,
-      kpis: {
-        totalViews,
-        totalLikes,
-        totalComments,
-        totalShares,
-        publishedPosts: postPlatforms.length,
+      account: {
+        byPlatform: Array.from(latestSnapByPlatform.entries()).map(([platform, s]) => ({ platform, ...s })),
+        followersOverTime: Array.from(Object.entries(followersOverTime)).map(([date, platforms]) => ({ date, ...platforms })),
+        totalFollowers: Array.from(latestSnapByPlatform.values()).reduce((s, v) => s + v.followers, 0),
+        totalImpressions: Array.from(latestSnapByPlatform.values()).reduce((s, v) => s + v.impressions, 0),
       },
-      engagementByDay,
-      byPlatform,
-      topPosts,
+      posts: {
+        byPlatform: Array.from(platformTotals.entries()).map(([platform, s]) => ({ platform, ...s })),
+        interactionsByDay: Array.from(interactionsByDay.entries()).map(([date, value]) => ({ date, value })),
+        postsByDay: Array.from(postsByDay.entries()).map(([date, value]) => ({ date, value })),
+        totalInteractions: Array.from(platformTotals.values()).reduce((s, v) => s + v.interactions, 0),
+        totalPostsCount: platformPosts.length,
+        items: platformPosts.map((p) => ({
+          id: p.id,
+          platform: p.platform,
+          caption: p.caption,
+          mediaType: p.mediaType,
+          thumbnailUrl: p.thumbnailUrl,
+          publishedAt: p.publishedAt,
+          views: p.views,
+          likes: p.likes,
+          comments: p.comments,
+          shares: p.shares,
+          impressions: p.impressions,
+          reach: p.reach,
+        })),
+      },
     },
   })
 }
