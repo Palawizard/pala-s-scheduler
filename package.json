@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "worker:dev": "tsx watch --env-file .env.local src/workers/index.ts",
+    "worker:docker": "tsx src/workers/index.ts",
     "worker:start": "node --env-file=.env.local dist/workers/index.js",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
