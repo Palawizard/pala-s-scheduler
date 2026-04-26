@@ -8,7 +8,12 @@ import {
   fetchYoutubeAccountStats,
 } from '@/lib/analytics/account'
 import { fetchInstagramStats } from '@/lib/analytics/instagram'
-import { fetchInstagramPosts, fetchTwitterPosts, fetchYoutubePosts } from '@/lib/analytics/media'
+import {
+  fetchInstagramPosts,
+  fetchTikTokPosts,
+  fetchTwitterPosts,
+  fetchYoutubePosts,
+} from '@/lib/analytics/media'
 import { fetchTikTokStats } from '@/lib/analytics/tiktok'
 import { fetchTwitterStats } from '@/lib/analytics/twitter'
 import { fetchYoutubeStats, type PlatformStats } from '@/lib/analytics/youtube'
@@ -20,20 +25,36 @@ async function fetchPostStats(
   connectedPlatform: ConnectedPlatform
 ): Promise<PlatformStats | null> {
   switch (platform) {
-    case 'YOUTUBE': return fetchYoutubeStats(platformPostId, connectedPlatform)
-    case 'INSTAGRAM': return fetchInstagramStats(platformPostId, connectedPlatform)
-    case 'TIKTOK': return fetchTikTokStats(platformPostId, connectedPlatform)
-    case 'TWITTER': return fetchTwitterStats(platformPostId, connectedPlatform)
+    case 'YOUTUBE':
+      return fetchYoutubeStats(platformPostId, connectedPlatform)
+    case 'INSTAGRAM':
+      return fetchInstagramStats(platformPostId, connectedPlatform)
+    case 'TIKTOK':
+      return fetchTikTokStats(platformPostId, connectedPlatform)
+    case 'TWITTER':
+      return fetchTwitterStats(platformPostId, connectedPlatform)
   }
 }
 
-async function syncAccountSnapshot(userId: string, platform: Platform, connectedPlatform: ConnectedPlatform): Promise<void> {
+async function syncAccountSnapshot(
+  userId: string,
+  platform: Platform,
+  connectedPlatform: ConnectedPlatform
+): Promise<void> {
   let stats = null
   switch (platform) {
-    case 'YOUTUBE': stats = await fetchYoutubeAccountStats(connectedPlatform); break
-    case 'INSTAGRAM': stats = await fetchInstagramAccountStats(connectedPlatform); break
-    case 'TIKTOK': stats = await fetchTikTokAccountStats(connectedPlatform); break
-    case 'TWITTER': stats = await fetchTwitterAccountStats(connectedPlatform); break
+    case 'YOUTUBE':
+      stats = await fetchYoutubeAccountStats(connectedPlatform)
+      break
+    case 'INSTAGRAM':
+      stats = await fetchInstagramAccountStats(connectedPlatform)
+      break
+    case 'TIKTOK':
+      stats = await fetchTikTokAccountStats(connectedPlatform)
+      break
+    case 'TWITTER':
+      stats = await fetchTwitterAccountStats(connectedPlatform)
+      break
   }
   if (!stats) return
 
@@ -47,18 +68,32 @@ async function syncAccountSnapshot(userId: string, platform: Platform, connected
   })
 }
 
-async function syncPlatformPosts(userId: string, platform: Platform, connectedPlatform: ConnectedPlatform): Promise<void> {
+async function syncPlatformPosts(
+  userId: string,
+  platform: Platform,
+  connectedPlatform: ConnectedPlatform
+): Promise<void> {
   let posts: Awaited<ReturnType<typeof fetchYoutubePosts>> = []
   switch (platform) {
-    case 'YOUTUBE': posts = await fetchYoutubePosts(connectedPlatform); break
-    case 'INSTAGRAM': posts = await fetchInstagramPosts(connectedPlatform); break
-    case 'TWITTER': posts = await fetchTwitterPosts(connectedPlatform); break
-    case 'TIKTOK': return // no video.list scope
+    case 'YOUTUBE':
+      posts = await fetchYoutubePosts(connectedPlatform)
+      break
+    case 'INSTAGRAM':
+      posts = await fetchInstagramPosts(connectedPlatform)
+      break
+    case 'TWITTER':
+      posts = await fetchTwitterPosts(connectedPlatform)
+      break
+    case 'TIKTOK':
+      posts = await fetchTikTokPosts(connectedPlatform)
+      break
   }
 
   for (const post of posts) {
     await db.platformPost.upsert({
-      where: { userId_platform_platformPostId: { userId, platform, platformPostId: post.platformPostId } },
+      where: {
+        userId_platform_platformPostId: { userId, platform, platformPostId: post.platformPostId },
+      },
       create: { userId, platform, ...post },
       update: {
         caption: post.caption,
@@ -94,14 +129,20 @@ export async function syncUserAnalytics(userId: string): Promise<SyncResult> {
     try {
       await syncAccountSnapshot(userId, cp.platform, cp)
     } catch (err) {
-      console.error(`[analytics] account snapshot failed for ${cp.platform}:`, err instanceof Error ? err.message : err)
+      console.error(
+        `[analytics] account snapshot failed for ${cp.platform}:`,
+        err instanceof Error ? err.message : err
+      )
       errors++
     }
 
     try {
       await syncPlatformPosts(userId, cp.platform, cp)
     } catch (err) {
-      console.error(`[analytics] platform posts sync failed for ${cp.platform}:`, err instanceof Error ? err.message : err)
+      console.error(
+        `[analytics] platform posts sync failed for ${cp.platform}:`,
+        err instanceof Error ? err.message : err
+      )
       errors++
     }
   }
@@ -120,7 +161,10 @@ export async function syncUserAnalytics(userId: string): Promise<SyncResult> {
     if (!pp.platformPostId) continue
     try {
       const stats = await fetchPostStats(pp.platform, pp.platformPostId, pp.connectedPlatform)
-      if (!stats) { skipped++; continue }
+      if (!stats) {
+        skipped++
+        continue
+      }
       await db.postAnalytics.create({
         data: {
           postPlatformId: pp.id,
@@ -136,7 +180,10 @@ export async function syncUserAnalytics(userId: string): Promise<SyncResult> {
       })
       synced++
     } catch (err) {
-      console.error(`[analytics] post stats failed for ${pp.platform}/${pp.platformPostId}:`, err instanceof Error ? err.message : err)
+      console.error(
+        `[analytics] post stats failed for ${pp.platform}/${pp.platformPostId}:`,
+        err instanceof Error ? err.message : err
+      )
       errors++
     }
   }
@@ -149,7 +196,10 @@ export async function syncAllUsersAnalytics(): Promise<void> {
   const users = await db.user.findMany({ select: { id: true } })
   for (const user of users) {
     await syncUserAnalytics(user.id).catch((err) => {
-      console.error(`[analytics] failed to sync user ${user.id}:`, err instanceof Error ? err.message : err)
+      console.error(
+        `[analytics] failed to sync user ${user.id}:`,
+        err instanceof Error ? err.message : err
+      )
     })
   }
 }

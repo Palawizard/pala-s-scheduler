@@ -42,7 +42,7 @@ export function getTikTokAuthUrl(state: string, codeChallenge: string): string {
     client_key: process.env.TIKTOK_CLIENT_KEY!,
     redirect_uri: CALLBACK_URL(),
     response_type: 'code',
-    scope: 'user.info.basic,video.upload,video.publish',
+    scope: 'user.info.basic,user.info.stats,video.list,video.upload,video.publish',
     state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
@@ -193,7 +193,9 @@ async function resizeImageForTikTok(
     return { url: image.publicUrl, tempKey: null }
   }
 
-  console.log(`[TikTok] resizing image from ${width}x${height} to fit ${TIKTOK_MAX_WIDTH}x${TIKTOK_MAX_HEIGHT}`)
+  console.log(
+    `[TikTok] resizing image from ${width}x${height} to fit ${TIKTOK_MAX_WIDTH}x${TIKTOK_MAX_HEIGHT}`
+  )
 
   const resized = await sharp(image.buffer)
     .resize(TIKTOK_MAX_WIDTH, TIKTOK_MAX_HEIGHT, { fit: 'inside', withoutEnlargement: true })

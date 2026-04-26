@@ -6,8 +6,8 @@ export async function fetchTikTokStats(
   videoId: string,
   platform: ConnectedPlatform
 ): Promise<PlatformStats | null> {
-  // Requires video.list scope — not included in the current OAuth flow
-  const res = await fetch('https://open.tiktokapis.com/v2/video/query/', {
+  const fields = ['id', 'view_count', 'like_count', 'comment_count', 'share_count'].join(',')
+  const res = await fetch(`https://open.tiktokapis.com/v2/video/query/?fields=${fields}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${platform.accessToken}`,
@@ -25,7 +25,7 @@ export async function fetchTikTokStats(
   }
 
   const body = (await res.json()) as {
-    data?: { videos?: { statistics?: Record<string, number> }[] }
+    data?: { videos?: Record<string, number>[] }
     error?: { code?: string }
   }
 
@@ -34,16 +34,16 @@ export async function fetchTikTokStats(
     return null
   }
 
-  const stats = body.data?.videos?.[0]?.statistics
+  const stats = body.data?.videos?.[0]
   if (!stats) return null
 
   return {
-    views: stats.play_count ?? 0,
-    likes: stats.digg_count ?? 0,
+    views: stats.view_count ?? 0,
+    likes: stats.like_count ?? 0,
     comments: stats.comment_count ?? 0,
     shares: stats.share_count ?? 0,
-    saves: stats.collect_count ?? 0,
+    saves: 0,
     reach: 0,
-    impressions: 0,
+    impressions: stats.view_count ?? 0,
   }
 }

@@ -8,8 +8,7 @@ const INSTAGRAM_GRAPH = 'https://graph.instagram.com'
 const INSTAGRAM_OAUTH = 'https://www.instagram.com/oauth/authorize'
 const INSTAGRAM_TOKEN = 'https://api.instagram.com/oauth/access_token'
 
-const CALLBACK_URL = () =>
-  `${process.env.NEXTAUTH_URL}/api/platforms/instagram/callback`
+const CALLBACK_URL = () => `${process.env.NEXTAUTH_URL}/api/platforms/instagram/callback`
 
 export function getInstagramAuthUrl(state: string): string {
   const params = new URLSearchParams({
@@ -18,7 +17,8 @@ export function getInstagramAuthUrl(state: string): string {
     client_id: process.env.META_APP_ID!,
     redirect_uri: CALLBACK_URL(),
     response_type: 'code',
-    scope: 'instagram_business_basic,instagram_business_content_publish',
+    scope:
+      'instagram_business_basic,instagram_business_content_publish,instagram_business_manage_insights',
     state,
   })
   return `${INSTAGRAM_OAUTH}?${params}`
@@ -190,13 +190,16 @@ async function publishInstagram(
 
   await waitForInstagramContainer(container.id, refreshedPlatform.accessToken)
 
-  const response = await fetch(`${INSTAGRAM_GRAPH}/${refreshedPlatform.platformUserId}/media_publish`, {
-    method: 'POST',
-    body: new URLSearchParams({
-      access_token: refreshedPlatform.accessToken,
-      creation_id: container.id,
-    }),
-  })
+  const response = await fetch(
+    `${INSTAGRAM_GRAPH}/${refreshedPlatform.platformUserId}/media_publish`,
+    {
+      method: 'POST',
+      body: new URLSearchParams({
+        access_token: refreshedPlatform.accessToken,
+        creation_id: container.id,
+      }),
+    }
+  )
 
   if (!response.ok) {
     throw new Error(`Instagram publish failed: ${await response.text()}`)

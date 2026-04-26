@@ -1,12 +1,16 @@
 import type { ConnectedPlatform } from '@prisma/client'
 
+import { fetchInstagramPosts, fetchTikTokPosts } from '@/lib/analytics/media'
+
 export type AccountStats = {
   followers: number
   impressions: number
   reach: number
 }
 
-export async function fetchYoutubeAccountStats(platform: ConnectedPlatform): Promise<AccountStats | null> {
+export async function fetchYoutubeAccountStats(
+  platform: ConnectedPlatform
+): Promise<AccountStats | null> {
   const res = await fetch(
     'https://www.googleapis.com/youtube/v3/channels?part=statistics&mine=true',
     { headers: { Authorization: `Bearer ${platform.accessToken}` } }
@@ -25,19 +29,32 @@ export async function fetchYoutubeAccountStats(platform: ConnectedPlatform): Pro
   }
 }
 
-export async function fetchInstagramAccountStats(platform: ConnectedPlatform): Promise<AccountStats | null> {
-  const params = new URLSearchParams({ fields: 'followers_count', access_token: platform.accessToken })
+export async function fetchInstagramAccountStats(
+  platform: ConnectedPlatform
+): Promise<AccountStats | null> {
+  const params = new URLSearchParams({
+    fields: 'followers_count',
+    access_token: platform.accessToken,
+  })
   const res = await fetch(`https://graph.instagram.com/v22.0/me?${params}`)
   if (!res.ok) {
     console.warn(`[analytics] instagram account stats failed (${res.status})`)
     return null
   }
   const body = (await res.json()) as { followers_count?: number }
-  return { followers: body.followers_count ?? 0, impressions: 0, reach: 0 }
+  const posts = await fetchInstagramPosts(platform)
+  return {
+    followers: body.followers_count ?? 0,
+    impressions: posts.reduce((sum, post) => sum + post.impressions, 0),
+    reach: posts.reduce((sum, post) => sum + post.reach, 0),
+  }
 }
 
-export async function fetchTikTokAccountStats(platform: ConnectedPlatform): Promise<AccountStats | null> {
-  const res = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=follower_count,likes_count', {
+export async function fetchTikTokAccountStats(
+  platform: ConnectedPlatform
+): Promise<AccountStats | null> {
+  const fields = ['follower_count', 'likes_count'].join(',')
+  const res = await fetch(`https://open.tiktokapis.com/v2/user/info/?fields=${fields}`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${platform.accessToken}` },
   })
@@ -45,13 +62,22 @@ export async function fetchTikTokAccountStats(platform: ConnectedPlatform): Prom
     console.warn(`[analytics] tiktok account stats failed (${res.status})`)
     return null
   }
-  const body = (await res.json()) as { data?: { user?: { follower_count?: number; likes_count?: number } } }
+  const body = (await res.json()) as {
+    data?: { user?: { follower_count?: number; likes_count?: number } }
+  }
   const user = body.data?.user
   if (!user) return null
-  return { followers: user.follower_count ?? 0, impressions: user.likes_count ?? 0, reach: 0 }
+  const posts = await fetchTikTokPosts(platform)
+  return {
+    followers: user.follower_count ?? 0,
+    impressions: posts.reduce((sum, post) => sum + post.impressions, 0),
+    reach: 0,
+  }
 }
 
-export async function fetchTwitterAccountStats(platform: ConnectedPlatform): Promise<AccountStats | null> {
+export async function fetchTwitterAccountStats(
+  platform: ConnectedPlatform
+): Promise<AccountStats | null> {
   const res = await fetch('https://api.twitter.com/2/users/me?user.fields=public_metrics', {
     headers: { Authorization: `Bearer ${platform.accessToken}` },
   })
