@@ -14,6 +14,19 @@ export type PostStatus = (typeof POST_STATUSES)[number]
 export const POST_PLATFORM_STATUSES = ['PENDING', 'PUBLISHING', 'PUBLISHED', 'FAILED'] as const
 export type PostPlatformStatus = (typeof POST_PLATFORM_STATUSES)[number]
 
+export const POST_CONTENT_TYPES = [
+  'YOUTUBE_VIDEO',
+  'YOUTUBE_SHORT',
+  'INSTAGRAM_POST',
+  'INSTAGRAM_REEL',
+  'TIKTOK_VIDEO',
+  'TIKTOK_PHOTO',
+] as const
+export type PostContentType = (typeof POST_CONTENT_TYPES)[number]
+
+export const POST_VISIBILITIES = ['PUBLIC', 'PRIVATE', 'UNLISTED', 'FRIENDS_ONLY'] as const
+export type PostVisibility = (typeof POST_VISIBILITIES)[number]
+
 export type ConnectedPlatform = {
   id: string
   platform: Platform
@@ -42,6 +55,8 @@ export type Post = {
 export type PostPlatformSummary = {
   id: string
   platform: Platform
+  contentType: PostContentType | null
+  visibility: PostVisibility | null
   status: PostPlatformStatus
   platformPostId: string | null
   errorMessage: string | null

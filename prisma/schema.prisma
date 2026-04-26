@@ -100,13 +100,15 @@ model PostPlatform {
   id                  String             @id @default(cuid())
   postId              String
   platform            Platform
+  contentType         PostContentType?
+  visibility          PostVisibility?
   connectedPlatformId String
   status              PostPlatformStatus @default(PENDING)
   platformPostId      String?
   errorMessage        String?            @db.Text
   publishedAt         DateTime?
   post                Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
-  connectedPlatform   ConnectedPlatform  @relation(fields: [connectedPlatformId], references: [id])
+  connectedPlatform   ConnectedPlatform  @relation(fields: [connectedPlatformId], references: [id], onDelete: Cascade)
   analytics           PostAnalytics[]
 
   @@unique([postId, platform])
@@ -150,4 +152,20 @@ enum PostPlatformStatus {
   PUBLISHING
   PUBLISHED
   FAILED
+}
+
+enum PostContentType {
+  YOUTUBE_VIDEO
+  YOUTUBE_SHORT
+  INSTAGRAM_POST
+  INSTAGRAM_REEL
+  TIKTOK_VIDEO
+  TIKTOK_PHOTO
+}
+
+enum PostVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+  FRIENDS_ONLY
 }

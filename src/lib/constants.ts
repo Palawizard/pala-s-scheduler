@@ -1,4 +1,4 @@
-import type { Platform, PostStatus } from '@/types'
+import type { Platform, PostContentType, PostStatus, PostVisibility } from '@/types'
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   YOUTUBE: 'YouTube',
@@ -16,6 +16,15 @@ export const PLATFORM_COLORS: Record<Platform, string> = {
 
 export const TWITTER_API_COST_NOTICE =
   'La publication via X utilise des crédits API payants.'
+
+export const POST_CONTENT_TYPE_LABELS: Record<PostContentType, string> = {
+  INSTAGRAM_POST: 'Post',
+  INSTAGRAM_REEL: 'Reel',
+  TIKTOK_PHOTO: 'Photo',
+  TIKTOK_VIDEO: 'Vidéo',
+  YOUTUBE_SHORT: 'Short',
+  YOUTUBE_VIDEO: 'Vidéo',
+}
 
 export const POST_STATUS_LABELS: Record<PostStatus, string> = {
   DRAFT: 'Brouillon',
@@ -47,3 +56,15 @@ export const ALLOWED_VIDEO_TYPES = [
 export const ALLOWED_MEDIA_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES]
 
 export const ANALYTICS_SYNC_CRON = '0 */6 * * *'
+
+export const POST_VISIBILITY_LABELS: Record<PostVisibility, string> = {
+  PUBLIC: 'Public',
+  PRIVATE: 'Privé',
+  UNLISTED: 'Non répertorié',
+  FRIENDS_ONLY: 'Amis uniquement',
+}
+
+export const PLATFORM_VISIBILITY_OPTIONS: Partial<Record<Platform, PostVisibility[]>> = {
+  YOUTUBE: ['PUBLIC', 'UNLISTED', 'PRIVATE'],
+  TIKTOK: ['PUBLIC', 'FRIENDS_ONLY', 'PRIVATE'],
+}

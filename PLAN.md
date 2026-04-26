@@ -11,7 +11,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 | 1 - Foundation   | TERMINE | `feat/foundation`   | -         |
 | 2 - Auth         | TERMINE | `feat/auth`         | 1         |
 | 3 - Calendar     | TERMINE | `feat/calendar`     | 2         |
-| 4 - Integrations | A FAIRE | `feat/integrations` | 2         |
+| 4 - Integrations | TERMINE | `feat/integrations` | 2         | merge sur `dev` le 26/04/2026 |
 | 5 - Scheduler    | A FAIRE | `feat/scheduler`    | 3, 4      |
 | 6 - Analytics    | A FAIRE | `feat/analytics`    | 4, 5      |
 | 7 - Polish       | A FAIRE | `feat/polish`       | 6         |
@@ -33,8 +33,8 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
   - `chore(db): setup prisma with full schema and initial migration`
 - [x] **1.4** BullMQ queue (`src/lib/queue.ts`) + worker skeleton (`src/workers/index.ts`)
   - `chore(worker): setup bullmq queue and worker skeleton`
-- [x] **1.5** Stockage local medias (`src/lib/storage.ts`)
-  - `chore(upload): setup local media storage helpers`
+- [x] **1.5** Stockage medias Cloudflare R2 (`src/lib/storage.ts`)
+  - `chore(upload): setup cloudflare r2 media storage helpers`
 - [x] **1.6** Layout dashboard + sidebar + header + pages vides + composants shadcn/ui
   - `feat(layout): add dashboard layout with sidebar and base shadcn components`
 - [x] **1.7** Types globaux + constantes + utils
@@ -150,7 +150,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
   - `feat(ui): add accented french interface copy`
 - [x] **3.1** API CRUD posts (`GET`, `POST`, `PATCH`, `DELETE`) avec validation Zod
   - `feat(posts): add post crud api routes with zod validation`
-- [x] **3.2** API upload media locale + suppression
+- [x] **3.2** API upload media R2 + suppression
   - `feat(upload): add media upload and delete api routes`
 - [x] **3.3** TanStack Query setup + hooks posts (`usePosts`, `useCreatePost`, etc.)
   - `feat(posts): add react query hooks for post management`
@@ -158,8 +158,8 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
   - `feat(calendar): add interactive fullcalendar with post events`
 - [x] **3.5** Formulaire de creation de post (React Hook Form + Zod + modale)
   - `feat(posts): add post creation form with platform selector`
-- [x] **3.6** Upload de medias dans le formulaire (drag-and-drop + preview + stockage local)
-  - `feat(posts): add media uploader with local storage integration`
+- [x] **3.6** Upload de medias dans le formulaire (drag-and-drop + preview + stockage R2)
+  - `feat(posts): add media uploader with r2 storage integration`
 - [x] **3.7** Composant evenement post sur le calendrier (icones + couleurs par statut)
   - `feat(calendar): add post event component with status colors`
 - [x] **3.8** Page `/posts` : liste avec filtres + actions (editer, publier, supprimer)
@@ -199,7 +199,7 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 1. Dans la modale, uploader une image
 2. Preview visible sous la zone d'upload
 3. Supprimer le media -> disparait de la preview
-4. Dans le dossier de stockage local : verifier l'upload et la suppression
+4. Dans le bucket Cloudflare R2 : verifier l'upload et la suppression
 
 #### Drag-and-drop
 
@@ -220,28 +220,41 @@ Chaque epic correspond a une branche Git (`feat/nom`). Chaque sous-etape corresp
 
 ---
 
-## Epic 4 : Integrations de Publication — A FAIRE
+## Epic 4 : Integrations de Publication — TERMINE
 
-**Branche :** `feat/integrations`
+**Branche :** `feat/integrations` (merge sur `dev` le 26/04/2026)
 **Depend de :** Epic 2 (merge sur `dev`)
 **Objectif :** Implementer la publication reelle vers chaque plateforme sociale.
 
 ### Sous-etapes
 
-- [ ] **4.1** Interface `PlatformPublisher` + types `PublishPayload` et `PublishResult`
+- [x] **4.1** Interface `PlatformPublisher` + types `PublishPayload` et `PublishResult`
   - `feat(platforms): define platform publisher interface and types`
-- [ ] **4.2** Publication YouTube (resumable upload + refresh token)
+- [x] **4.2** Publication YouTube (resumable upload + refresh token)
   - `feat(youtube): implement video upload via youtube data api v3`
-- [ ] **4.3** Publication Instagram (container media + refresh token 60j)
+- [x] **4.3** Publication Instagram (container media + refresh token 60j)
   - `feat(instagram): implement content publishing via instagram graph api`
-- [ ] **4.4** Publication TikTok (polling statut upload asynchrone)
+- [x] **4.4** Publication TikTok (polling statut upload asynchrone)
   - `feat(tiktok): implement video upload via tiktok content posting api`
-- [ ] **4.5** Publication X/Twitter (chunked media + tweet + refresh token)
+- [x] **4.5** Publication X/Twitter (chunked media + tweet + refresh token)
   - `feat(twitter): implement tweet and media posting via x api v2`
-- [ ] **4.6** Route `POST /api/posts/[id]/publish` (publication immediate multi-plateforme)
+- [x] **4.6** Route `POST /api/posts/[id]/publish` (publication immediate multi-plateforme)
   - `feat(posts): add immediate publish route with per-platform status`
-- [ ] **4.7** Route `POST /api/posts/[id]/cancel`
+- [x] **4.7** Route `POST /api/posts/[id]/cancel`
   - `feat(posts): add post cancellation route`
+
+### Correctifs et ameliorations post-implementation
+
+- [x] TikTok : support publication photo (PULL_FROM_URL) + resize auto si image > 1080p
+  - `fix(tiktok): add debug logs and resize images above 1080p before photo publish`
+- [x] TikTok : types de contenu Photo / Video + champ Description optionnel (photo uniquement)
+  - `feat(tiktok): add photo and video content types with optional description field`
+- [x] Posts : caption en titre principal dans les cartes
+  - `fix(posts): prioritize caption over title in post card display`
+- [x] Posts : apercu thumbnail video + lecture inline dans le formulaire, calendrier et liste
+  - `feat(posts): add video thumbnail preview and inline playback`
+- [x] UI : panneau de previsualisation par plateforme (TikTok, Instagram Post/Reel, YouTube Video/Short, X)
+  - `feat(ui): improve post preview panel with per-platform layouts`
 
 ### Plan de Test - Epic 4
 

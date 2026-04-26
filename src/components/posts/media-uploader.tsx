@@ -6,35 +6,12 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { ALLOWED_MEDIA_TYPES } from '@/lib/constants'
-import { deleteUploadedMedia } from '@/lib/media-client'
+import { deleteUploadedMedia, uploadMedia } from '@/lib/media-client'
 import { cn } from '@/lib/utils'
 
 type MediaUploaderProps = {
   value: string[]
   onChange: (urls: string[]) => void
-}
-
-async function uploadMedia(file: File): Promise<string> {
-  const formData = new FormData()
-  formData.append('file', file)
-
-  const response = await fetch('/api/upload', {
-    method: 'POST',
-    body: formData,
-  })
-  const body = (await response.json().catch(() => null)) as
-    | { data?: { url: string }; error?: unknown }
-    | null
-
-  if (!response.ok) {
-    throw new Error(typeof body?.error === 'string' ? body.error : 'Upload impossible')
-  }
-
-  if (!body?.data?.url) {
-    throw new Error('Upload impossible')
-  }
-
-  return body.data.url
 }
 
 export function MediaUploader({ value, onChange }: MediaUploaderProps) {
@@ -113,6 +90,14 @@ export function MediaUploader({ value, onChange }: MediaUploaderProps) {
                 <div
                   className="h-28 w-full bg-cover bg-center"
                   style={{ backgroundImage: `url(${url})` }}
+                />
+              ) : url.match(/\.(mp4|mov|avi|webm|mkv|m4v)(\?|$)/i) ? (
+                <video
+                  src={url}
+                  className="h-28 w-full object-cover"
+                  controls={false}
+                  muted
+                  preload="metadata"
                 />
               ) : (
                 <div className="bg-muted flex h-28 items-center justify-center">

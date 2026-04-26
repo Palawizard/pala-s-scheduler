@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { updatePostSchema } from '@/lib/posts/schemas'
 import { postInclude, serializePost } from '@/lib/posts/serialize'
 import { deletePostMedia } from '@/lib/posts/media-cleanup'
+import type { Platform, PostContentType, PostVisibility } from '@/types'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -12,6 +13,18 @@ type RouteContext = {
 
 function getPostStatus(scheduledAt: string | null | undefined): 'DRAFT' | 'SCHEDULED' {
   return scheduledAt ? 'SCHEDULED' : 'DRAFT'
+}
+
+function getDefaultContentType(platform: Platform): PostContentType | null {
+  if (platform === 'YOUTUBE') return 'YOUTUBE_VIDEO'
+  if (platform === 'INSTAGRAM') return 'INSTAGRAM_POST'
+  if (platform === 'TIKTOK') return 'TIKTOK_VIDEO'
+  return null
+}
+
+function getDefaultVisibility(platform: Platform): PostVisibility | null {
+  if (platform === 'YOUTUBE' || platform === 'TIKTOK') return 'PUBLIC'
+  return null
 }
 
 export async function GET(_request: NextRequest, { params }: RouteContext) {
@@ -67,7 +80,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         where: {
           userId: user.id,
           isActive: true,
-          platform: { in: parsed.data.platforms },
+          platform: { in: parsed.data.platforms.map((item) => item.platform) },
         },
         select: { id: true, platform: true },
       })
@@ -94,10 +107,17 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
         status: parsed.data.status ?? getPostStatus(nextScheduledAt?.toISOString()),
         platforms: connectedPlatforms
           ? {
-              create: connectedPlatforms.map((connectedPlatform) => ({
-                platform: connectedPlatform.platform,
-                connectedPlatformId: connectedPlatform.id,
-              })),
+              create: connectedPlatforms.map((connectedPlatform) => {
+                const input = parsed.data.platforms?.find(
+                  (item) => item.platform === connectedPlatform.platform
+                )
+                return {
+                  platform: connectedPlatform.platform,
+                  contentType: input?.contentType ?? getDefaultContentType(connectedPlatform.platform),
+                  visibility: input?.visibility ?? getDefaultVisibility(connectedPlatform.platform),
+                  connectedPlatformId: connectedPlatform.id,
+                }
+              }),
             }
           : undefined,
       },

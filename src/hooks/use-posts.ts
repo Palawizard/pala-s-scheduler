@@ -2,11 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import type { Platform, PostStatus } from '@/types'
+import type { Platform, PostContentType, PostStatus, PostVisibility } from '@/types'
 
 export type PostPlatformView = {
   id: string
   platform: Platform
+  contentType: PostContentType | null
+  visibility: PostVisibility | null
   status: 'PENDING' | 'PUBLISHING' | 'PUBLISHED' | 'FAILED'
   platformPostId: string | null
   errorMessage: string | null
@@ -44,8 +46,14 @@ export type PostPayload = {
   mediaUrls?: string[]
   thumbnailUrl?: string | null
   scheduledAt?: string | null
-  platforms?: Platform[]
+  platforms?: PostPlatformInput[]
   status?: PostStatus
+}
+
+export type PostPlatformInput = {
+  platform: Platform
+  contentType?: PostContentType | null
+  visibility?: PostVisibility | null
 }
 
 function buildPostsUrl(filters?: PostsFilters): string {
@@ -100,6 +108,16 @@ async function deletePost(id: string): Promise<{ success: boolean }> {
   return readJsonResponse<{ success: boolean }>(response)
 }
 
+async function publishPost(id: string): Promise<PostView> {
+  const response = await fetch(`/api/posts/${id}/publish`, { method: 'POST' })
+  return readJsonResponse<PostView>(response)
+}
+
+async function cancelPost(id: string): Promise<PostView> {
+  const response = await fetch(`/api/posts/${id}/cancel`, { method: 'POST' })
+  return readJsonResponse<PostView>(response)
+}
+
 export function usePosts(filters?: PostsFilters) {
   return useQuery({
     queryKey: ['posts', filters],
@@ -144,6 +162,30 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: deletePost,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    },
+  })
+}
+
+export function usePublishPost() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: publishPost,
+    onSuccess: (post) => {
+      queryClient.setQueryData(['posts', post.id], post)
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+    },
+  })
+}
+
+export function useCancelPost() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: cancelPost,
+    onSuccess: (post) => {
+      queryClient.setQueryData(['posts', post.id], post)
       queryClient.invalidateQueries({ queryKey: ['posts'] })
     },
   })

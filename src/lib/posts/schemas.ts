@@ -1,9 +1,11 @@
 import { z } from 'zod'
 
-import { PLATFORMS, POST_STATUSES } from '@/types'
+import { PLATFORMS, POST_CONTENT_TYPES, POST_STATUSES, POST_VISIBILITIES } from '@/types'
 
 const platformSchema = z.enum(PLATFORMS)
+const postContentTypeSchema = z.enum(POST_CONTENT_TYPES)
 const postStatusSchema = z.enum(POST_STATUSES)
+const postVisibilitySchema = z.enum(POST_VISIBILITIES)
 
 const scheduledAtSchema = z
   .string()
@@ -15,6 +17,62 @@ const mediaUrlSchema = z
   .string()
   .refine((value) => value.startsWith('/api/media/') || z.string().url().safeParse(value).success, {
     message: 'URL de média invalide',
+  })
+
+const postPlatformInputSchema = z
+  .object({
+    platform: platformSchema,
+    contentType: postContentTypeSchema.nullable().optional(),
+    visibility: postVisibilitySchema.nullable().optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.platform === 'YOUTUBE' && !value.contentType?.startsWith('YOUTUBE_')) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Format YouTube invalide',
+        path: ['contentType'],
+      })
+    }
+
+    if (value.platform === 'INSTAGRAM' && !value.contentType?.startsWith('INSTAGRAM_')) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Format Instagram invalide',
+        path: ['contentType'],
+      })
+    }
+
+    if (value.platform === 'TIKTOK' && value.contentType && !value.contentType.startsWith('TIKTOK_')) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Format TikTok invalide',
+        path: ['contentType'],
+      })
+    }
+
+    if (value.platform === 'TWITTER' && value.contentType) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Format de plateforme invalide',
+        path: ['contentType'],
+      })
+    }
+
+    if (value.visibility === 'UNLISTED' && value.platform !== 'YOUTUBE') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Non répertorié disponible uniquement sur YouTube',
+        path: ['visibility'],
+      })
+    }
+
+    if (value.visibility === 'FRIENDS_ONLY' && value.platform !== 'TIKTOK') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Amis uniquement disponible uniquement sur TikTok',
+        path: ['visibility'],
+      })
+    }
   })
 
 export const postQuerySchema = z.object({
@@ -31,7 +89,7 @@ export const createPostSchema = z.object({
   mediaUrls: z.array(mediaUrlSchema).max(10).default([]),
   thumbnailUrl: mediaUrlSchema.nullable().optional(),
   scheduledAt: scheduledAtSchema,
-  platforms: z.array(platformSchema).max(PLATFORMS.length).default([]),
+  platforms: z.array(postPlatformInputSchema).max(PLATFORMS.length).default([]),
 })
 
 export const updatePostSchema = createPostSchema.partial().extend({

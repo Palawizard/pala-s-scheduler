@@ -31,6 +31,6 @@ export function truncate(str: string, maxLength: number): string {
 }
 
 export function extractStorageKey(url: string): string {
-  const base = process.env.NEXT_PUBLIC_LOCAL_STORAGE_PUBLIC_URL ?? ''
+  const base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? ''
   return url.replace(`${base}/`, '')
 }

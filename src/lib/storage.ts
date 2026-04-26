@@ -1,64 +1,178 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-const DEFAULT_STORAGE_ROOT = path.join(process.cwd(), 'storage')
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3'
+
 const DEFAULT_PUBLIC_BASE_URL = '/api/media'
 
-function getStorageRoot(): string {
-  return path.resolve(process.env.LOCAL_STORAGE_ROOT ?? DEFAULT_STORAGE_ROOT)
+type R2Config = {
+  accountId: string
+  accessKeyId: string
+  secretAccessKey: string
+  bucket: string
+}
+
+let r2Client: S3Client | null = null
+
+function getR2Config(): R2Config {
+  const accountId = process.env.R2_ACCOUNT_ID
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY
+  const bucket = process.env.R2_BUCKET_NAME
+
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
+    throw new Error('Missing Cloudflare R2 configuration')
+  }
+
+  return { accountId, accessKeyId, secretAccessKey, bucket }
+}
+
+function getR2Client(): S3Client {
+  const config = getR2Config()
+
+  r2Client ??= new S3Client({
+    region: 'auto',
+    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    },
+  })
+
+  return r2Client
 }
 
 function getPublicBaseUrl(): string {
-  return (process.env.LOCAL_STORAGE_PUBLIC_URL ?? DEFAULT_PUBLIC_BASE_URL).replace(/\/$/, '')
+  return (process.env.R2_PUBLIC_URL ?? DEFAULT_PUBLIC_BASE_URL).replace(/\/$/, '')
 }
 
-function resolveStoragePath(key: string): string {
-  const storageRoot = getStorageRoot()
-  const filePath = path.resolve(storageRoot, key)
+function isR2ApiEndpoint(url: URL): boolean {
+  return url.hostname.endsWith('.r2.cloudflarestorage.com')
+}
 
-  if (!filePath.startsWith(`${storageRoot}${path.sep}`)) {
+export function getAppMediaUrl(key: string): string {
+  assertValidStorageKey(key)
+  return `${DEFAULT_PUBLIC_BASE_URL}/${key}`
+}
+
+function assertValidStorageKey(key: string): void {
+  const normalized = path.posix.normalize(key)
+  const hasTraversal = normalized === '..' || normalized.startsWith('../')
+
+  if (!key || key.startsWith('/') || key.includes('\\') || hasTraversal || normalized !== key) {
     throw new Error('Invalid storage key')
   }
-
-  return filePath
 }
 
-export async function uploadFile(
-  key: string,
-  body: Buffer,
-  _contentType: string
-): Promise<string> {
-  const filePath = resolveStoragePath(key)
-  await mkdir(path.dirname(filePath), { recursive: true })
-  await writeFile(filePath, body)
+export async function uploadFile(key: string, body: Buffer, contentType: string): Promise<string> {
+  assertValidStorageKey(key)
+  const config = getR2Config()
 
-  return getPublicUrl(key)
+  await getR2Client().send(
+    new PutObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    })
+  )
+
+  return getAppMediaUrl(key)
 }
 
 export async function deleteFile(key: string): Promise<void> {
-  await rm(resolveStoragePath(key), { force: true })
+  assertValidStorageKey(key)
+  const config = getR2Config()
+
+  await getR2Client().send(
+    new DeleteObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+    })
+  )
 }
 
 export async function readFileFromStorage(key: string): Promise<Buffer> {
-  return readFile(resolveStoragePath(key))
+  assertValidStorageKey(key)
+  const config = getR2Config()
+
+  const response = await getR2Client().send(
+    new GetObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+    })
+  )
+
+  if (!response.Body) {
+    throw new Error('Storage object has no body')
+  }
+
+  return Buffer.from(await response.Body.transformToByteArray())
+}
+
+export async function getFileSizeFromStorage(key: string): Promise<number> {
+  assertValidStorageKey(key)
+  const config = getR2Config()
+
+  const response = await getR2Client().send(
+    new HeadObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+    })
+  )
+
+  return response.ContentLength ?? 0
 }
 
 export function getPublicUrl(key: string): string {
+  assertValidStorageKey(key)
   return `${getPublicBaseUrl()}/${key}`
+}
+
+export function getAbsolutePublicUrl(key: string): string {
+  const publicUrl = getPublicUrl(key)
+  const appOrigin = new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000')
+
+  try {
+    const url = new URL(publicUrl)
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || isR2ApiEndpoint(url)) {
+      return new URL(getAppMediaUrl(key), appOrigin).toString()
+    }
+    return url.toString()
+  } catch {
+    return new URL(publicUrl, appOrigin).toString()
+  }
 }
 
 export function extractKeyFromUrl(url: string): string {
   const publicBaseUrl = getPublicBaseUrl()
+  const appMediaBaseUrl = DEFAULT_PUBLIC_BASE_URL
 
   if (url.startsWith(`${publicBaseUrl}/`)) {
-    return url.slice(publicBaseUrl.length + 1)
+    return decodeURIComponent(url.slice(publicBaseUrl.length + 1))
   }
 
-  const parsedUrl = new URL(url, process.env.NEXTAUTH_URL ?? 'http://localhost:3000')
-  const basePath = new URL(publicBaseUrl, parsedUrl.origin).pathname.replace(/\/$/, '')
+  if (url.startsWith(`${appMediaBaseUrl}/`)) {
+    return decodeURIComponent(url.slice(appMediaBaseUrl.length + 1))
+  }
 
-  if (!parsedUrl.pathname.startsWith(`${basePath}/`)) {
+  const appOrigin = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  const parsedUrl = new URL(url, appOrigin)
+  const appMediaBasePath = new URL(appMediaBaseUrl, parsedUrl.origin).pathname.replace(/\/$/, '')
+  const publicBase = new URL(publicBaseUrl, parsedUrl.origin)
+  const basePath = publicBase.pathname.replace(/\/$/, '')
+
+  if (parsedUrl.pathname.startsWith(`${appMediaBasePath}/`)) {
+    return decodeURIComponent(parsedUrl.pathname.slice(appMediaBasePath.length + 1))
+  }
+
+  if (parsedUrl.origin !== publicBase.origin || !parsedUrl.pathname.startsWith(`${basePath}/`)) {
     return ''
   }
 
