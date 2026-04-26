@@ -1,6 +1,8 @@
 import { Queue } from 'bullmq'
 import IORedis from 'ioredis'
 
+export const ANALYTICS_SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000
+
 export const redisConnection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
   maxRetriesPerRequest: null,
 })
@@ -44,4 +46,24 @@ export async function cancelPostJob(postId: string): Promise<void> {
   if (existing) {
     await existing.remove()
   }
+}
+
+export const analyticsQueue = new Queue('analytics', {
+  connection: redisConnection,
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: { type: 'exponential', delay: 10_000 },
+    removeOnComplete: { count: 10 },
+    removeOnFail: { count: 50 },
+  },
+})
+
+export type AnalyticsJobData = Record<string, never>
+
+export async function registerAnalyticsSyncJob(): Promise<void> {
+  await analyticsQueue.upsertJobScheduler(
+    'analytics-sync',
+    { every: ANALYTICS_SYNC_INTERVAL_MS },
+    { name: 'sync-all', data: {} }
+  )
 }

@@ -1,5 +1,7 @@
 import IORedis from 'ioredis'
 
+import { registerAnalyticsSyncJob } from '@/lib/queue'
+import { createAnalyticsWorker } from '@/workers/analytics.worker'
 import { createPostSchedulerWorker } from '@/workers/post-scheduler.worker'
 
 const connection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
@@ -15,18 +17,25 @@ connection.on('error', (err: Error) => {
   process.exit(1)
 })
 
-const worker = createPostSchedulerWorker(connection)
+const postWorker = createPostSchedulerWorker(connection)
+const analyticsWorker = createAnalyticsWorker(connection)
+
+registerAnalyticsSyncJob().catch((err: unknown) => {
+  console.error('[worker] failed to register analytics sync job:', err)
+})
 
 process.on('SIGTERM', async () => {
   console.log('[worker] shutting down...')
-  await worker.close()
+  await postWorker.close()
+  await analyticsWorker.close()
   await connection.quit()
   process.exit(0)
 })
 
 process.on('SIGINT', async () => {
   console.log('[worker] shutting down...')
-  await worker.close()
+  await postWorker.close()
+  await analyticsWorker.close()
   await connection.quit()
   process.exit(0)
 })
