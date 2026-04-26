@@ -43,3 +43,8 @@ next-env.d.ts
 # prisma
 /prisma/*.db
 /prisma/*.db-journal
+
+# local project notes
+AGENTS.md
+DOCUMENTATION.md
+PLAN.md

@@ -1,15 +1,15 @@
 # Pala's Scheduler
 
-Application personnelle de planification, publication et suivi analytique pour YouTube, Instagram, TikTok et X.
+Personal scheduling, publishing, and analytics app for YouTube, Instagram, TikTok, and X.
 
-## Prérequis
+## Requirements
 
 - Node.js 20+
 - pnpm 9+
 - Docker
-- cloudflared pour tester les callbacks OAuth en HTTPS
+- cloudflared for testing HTTPS OAuth callbacks
 
-## Installation
+## Setup
 
 ```bash
 pnpm install
@@ -19,45 +19,45 @@ pnpm db:migrate
 pnpm db:generate
 ```
 
-Renseigner ensuite les variables dans `.env.local`.
+Then fill in the required values in `.env.local`.
 
-## Développement
+## Development
 
 ```bash
 pnpm dev
 pnpm worker:dev
 ```
 
-Pour tester les OAuth qui exigent HTTPS :
+To test OAuth providers that require HTTPS:
 
 ```bash
 pnpm run dev:tunnel
 ```
 
-Ouvrir l’application avec l’URL configurée dans `NEXTAUTH_URL`.
+Open the app with the URL configured in `NEXTAUTH_URL`.
 
 ## Scripts
 
 ```bash
-pnpm dev              # serveur Next.js
-pnpm worker:dev       # worker BullMQ local
-pnpm type-check       # vérification TypeScript
-pnpm lint             # lint ESLint
-pnpm build            # build production
-pnpm db:migrate       # migrations Prisma en local
-pnpm db:generate      # génération du client Prisma
+pnpm dev              # Next.js dev server
+pnpm worker:dev       # local BullMQ worker
+pnpm type-check       # TypeScript check
+pnpm lint             # ESLint
+pnpm build            # production build
+pnpm db:migrate       # local Prisma migrations
+pnpm db:generate      # generate Prisma client
 pnpm db:studio        # Prisma Studio
 ```
 
-## Variables d’environnement
+## Environment Variables
 
-Les variables attendues sont listées dans `.env.example`.
+Expected variables are listed in `.env.example`.
 
-En production, `EMAIL_SERVER` doit être renseigné pour envoyer les liens de connexion. La validation des variables est faite au démarrage serveur et renvoie une erreur explicite si une valeur requise manque.
+In production, `EMAIL_SERVER` must be set to send login links. Environment variables are validated at server startup and missing required values produce an explicit error.
 
 ## OAuth
 
-Configurer ces callbacks dans les consoles des plateformes :
+Configure these callbacks in the provider dashboards:
 
 ```txt
 https://dev-scheduler.palawi.fr/api/auth/callback/google
@@ -66,31 +66,31 @@ https://dev-scheduler.palawi.fr/api/platforms/tiktok/callback
 https://dev-scheduler.palawi.fr/api/platforms/twitter/callback
 ```
 
-## Stockage médias
+## Media Storage
 
-Les médias sont stockés sur Cloudflare R2. En développement, `R2_PUBLIC_URL` peut pointer vers la route proxy locale :
+Media files are stored on Cloudflare R2. In development, `R2_PUBLIC_URL` can point to the local proxy route:
 
 ```txt
 http://localhost:3000/api/media
 ```
 
-Pour tester la publication via le tunnel HTTPS, utiliser une URL publique accessible par les plateformes.
+To test publishing through the HTTPS tunnel, use a public URL that social platforms can access.
 
-## Docker production
+## Production Docker
 
-Construire et lancer l’application, le worker, PostgreSQL et Redis :
+Build and run the app, worker, PostgreSQL, and Redis:
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
 
-Appliquer les migrations en production :
+Apply production migrations:
 
 ```bash
 docker compose -f docker-compose.prod.yml run --rm app pnpm db:migrate:prod
 ```
 
-## Vérifications avant livraison
+## Pre-Delivery Checks
 
 ```bash
 pnpm type-check
@@ -98,13 +98,13 @@ pnpm lint
 pnpm build
 ```
 
-## Structure principale
+## Main Structure
 
 ```txt
-src/app                 Pages et route handlers Next.js
-src/components          Interface utilisateur
-src/hooks               Hooks TanStack Query
-src/lib                 Auth, DB, queue, stockage, plateformes, analytics
-src/workers             Worker BullMQ
-prisma                  Schéma et migrations
+src/app                 Next.js pages and route handlers
+src/components          UI components
+src/hooks               TanStack Query hooks
+src/lib                 Auth, DB, queue, storage, platforms, analytics
+src/workers             BullMQ worker
+prisma                  Schema and migrations
 ```
