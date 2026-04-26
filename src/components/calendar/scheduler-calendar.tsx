@@ -4,9 +4,11 @@ import type { CalendarOptions } from '@fullcalendar/core'
 import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
+import { CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { PostEvent } from '@/components/calendar/post-event'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { type PostView, usePosts, useUpdatePost } from '@/hooks/use-posts'
 import { PLATFORM_COLORS } from '@/lib/constants'
@@ -82,29 +84,39 @@ export function SchedulerCalendar({ onDateClick, onPostClick }: SchedulerCalenda
           </div>
         </div>
       ) : (
-        <FullCalendar
-          plugins={[timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          locale="fr"
-          height="100%"
-          editable
-          selectable
-          nowIndicator
-          events={events}
-          dateClick={handleDateClick}
-          eventClick={handleEventClick}
-          eventDrop={handleEventDrop}
-          eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
-          buttonText={{
-            today: 'Aujourd’hui',
-            week: 'Semaine',
-          }}
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: '',
-          }}
-        />
+        <div className="relative h-full min-h-[520px]">
+          <FullCalendar
+            plugins={[timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            locale="fr"
+            height="100%"
+            editable
+            selectable
+            nowIndicator
+            events={events}
+            dateClick={handleDateClick}
+            eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+            eventContent={(eventInfo) => <PostEvent post={eventInfo.event.extendedProps.post} />}
+            buttonText={{
+              today: 'Aujourd’hui',
+              week: 'Semaine',
+            }}
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: '',
+            }}
+          />
+          {posts.length === 0 && (
+            <EmptyState
+              className="absolute inset-x-4 top-24 z-10 bg-white/95 shadow-sm backdrop-blur"
+              description="Cliquez sur un créneau du calendrier pour préparer votre première publication."
+              icon={<CalendarDays className="h-8 w-8" />}
+              title="Aucune publication planifiée"
+            />
+          )}
+        </div>
       )}
     </div>
   )

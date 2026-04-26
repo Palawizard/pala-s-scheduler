@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { RefreshCw } from 'lucide-react'
+import { BarChart3, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { AccountSection } from '@/components/analytics/account-section'
 import { PostsSection } from '@/components/analytics/posts-section'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { useAnalytics, useSyncAnalytics } from '@/hooks/use-analytics'
@@ -22,6 +23,13 @@ export function AnalyticsPageContent() {
   const [period, setPeriod] = useState(30)
   const { data, isLoading } = useAnalytics(period)
   const sync = useSyncAnalytics()
+  const hasAnalyticsData = Boolean(
+    data &&
+    (data.account.totalFollowers > 0 ||
+      data.account.totalImpressions > 0 ||
+      data.posts.totalInteractions > 0 ||
+      data.posts.totalPostsCount > 0)
+  )
 
   async function handleSync() {
     try {
@@ -80,7 +88,19 @@ export function AnalyticsPageContent() {
             <Skeleton className="h-52 rounded-lg" />
           </div>
         </div>
-      ) : !data ? null : (
+      ) : !data ? null : !hasAnalyticsData ? (
+        <EmptyState
+          action={
+            <Button variant="outline" onClick={handleSync} disabled={sync.isPending}>
+              {sync.isPending ? <Spinner /> : <RefreshCw className="h-4 w-4" />}
+              Synchroniser
+            </Button>
+          }
+          description="Synchronisez vos comptes connectés pour afficher les performances."
+          icon={<BarChart3 className="h-8 w-8" />}
+          title="Aucune donnée analytique"
+        />
+      ) : (
         <div className="space-y-10">
           <AccountSection
             byPlatform={data.account.byPlatform}

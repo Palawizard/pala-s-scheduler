@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { AlertCircle, Edit, Send, Trash2 } from 'lucide-react'
+import { AlertCircle, Edit, FileText, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { PostForm } from '@/components/posts/post-form'
@@ -12,6 +12,7 @@ import { PostStatusBadge } from '@/components/posts/post-status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import {
@@ -151,7 +152,15 @@ export function PostsPageContent() {
       <div className="flex flex-col gap-3">
         {isLoading && <PostsListSkeleton />}
         {!isLoading && posts.length === 0 && (
-          <p className="text-muted-foreground text-sm">Aucune publication.</p>
+          <EmptyState
+            description={
+              status || platform
+                ? 'Aucune publication ne correspond aux filtres sélectionnés.'
+                : 'Créez une publication depuis le calendrier pour la retrouver ici.'
+            }
+            icon={<FileText className="h-8 w-8" />}
+            title="Aucune publication"
+          />
         )}
         {posts.map((post) => (
           <Card key={post.id}>
