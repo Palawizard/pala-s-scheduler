@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react'
 
 import { Header } from '@/components/layout/header'
 import { Sidebar } from '@/components/layout/sidebar'
+import { SiteFooter } from '@/components/layout/site-footer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type DashboardShellProps = {
@@ -29,7 +30,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
       </Dialog>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header onMenuClick={() => setMobileMenuOpen(true)} />
-        <main className="min-w-0 flex-1 overflow-auto p-4 md:p-6">{children}</main>
+        <div className="flex min-w-0 flex-1 flex-col overflow-auto">
+          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <SiteFooter />
+        </div>
       </div>
     </div>
   )
