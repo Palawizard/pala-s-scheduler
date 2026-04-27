@@ -71,9 +71,30 @@ function buildPostsUrl(filters?: PostsFilters): string {
 async function readJsonResponse<T>(response: Response): Promise<T> {
   const body = (await response.json().catch(() => null)) as { data?: T; error?: unknown } | null
   if (!response.ok) {
-    throw new Error(typeof body?.error === 'string' ? body.error : 'Une erreur est survenue')
+    throw new Error(formatApiError(body?.error))
   }
   return body?.data as T
+}
+
+function formatApiError(error: unknown): string {
+  if (typeof error === 'string') return error
+  if (!error || typeof error !== 'object') return 'Une erreur est survenue'
+
+  const fieldErrors = (error as { fieldErrors?: Record<string, unknown> }).fieldErrors
+  if (fieldErrors && typeof fieldErrors === 'object') {
+    const messages = Object.values(fieldErrors)
+      .flatMap((value) => (Array.isArray(value) ? value : []))
+      .filter((value): value is string => typeof value === 'string')
+    if (messages.length > 0) return messages.join('\n')
+  }
+
+  const formErrors = (error as { formErrors?: unknown }).formErrors
+  if (Array.isArray(formErrors)) {
+    const messages = formErrors.filter((value): value is string => typeof value === 'string')
+    if (messages.length > 0) return messages.join('\n')
+  }
+
+  return 'Une erreur est survenue'
 }
 
 async function fetchPosts(filters?: PostsFilters): Promise<PostView[]> {

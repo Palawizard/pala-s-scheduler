@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { appBasePath } from '@/lib/base-path'
 import { PLATFORMS, POST_CONTENT_TYPES, POST_STATUSES, POST_VISIBILITIES } from '@/types'
 
 const platformSchema = z.enum(PLATFORMS)
@@ -13,9 +14,14 @@ const scheduledAtSchema = z
   .nullable()
   .optional()
 
+function isAppMediaUrl(value: string): boolean {
+  if (value.startsWith('/api/media/')) return true
+  return Boolean(appBasePath && value.startsWith(`${appBasePath}/api/media/`))
+}
+
 const mediaUrlSchema = z
   .string()
-  .refine((value) => value.startsWith('/api/media/') || z.string().url().safeParse(value).success, {
+  .refine((value) => isAppMediaUrl(value) || z.string().url().safeParse(value).success, {
     message: 'URL de média invalide',
   })
 
