@@ -1,10 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { signIn } from 'next-auth/react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { withBasePath } from '@/lib/base-path'
+
+function LegalLinks() {
+  return (
+    <nav
+      aria-label="Informations légales"
+      className="text-muted-foreground flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs"
+    >
+      <Link href="/terms" className="hover:text-foreground underline underline-offset-4">
+        Conditions d’utilisation
+      </Link>
+      <Link href="/privacy" className="hover:text-foreground underline underline-offset-4">
+        Politique de confidentialité
+      </Link>
+    </nav>
+  )
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -37,6 +55,7 @@ export default function LoginPage() {
           >
             Utiliser une autre adresse
           </button>
+          <LegalLinks />
         </div>
       </div>
     )
@@ -79,6 +98,8 @@ export default function LoginPage() {
         >
           Continuer avec Google
         </Button>
+
+        <LegalLinks />
       </div>
     </div>
   )
