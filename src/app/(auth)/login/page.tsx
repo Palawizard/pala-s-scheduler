@@ -26,8 +26,13 @@ function LegalLinks() {
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
+  const [reviewerEmail, setReviewerEmail] = useState('')
+  const [reviewerPassword, setReviewerPassword] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [reviewerLoading, setReviewerLoading] = useState(false)
+  const [reviewerError, setReviewerError] = useState('')
+  const [showReviewerForm, setShowReviewerForm] = useState(false)
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault()
@@ -39,6 +44,28 @@ export default function LoginPage() {
     })
     setSent(true)
     setLoading(false)
+  }
+
+  async function handleReviewerLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setReviewerError('')
+    setReviewerLoading(true)
+
+    const response = await fetch(withBasePath('/api/reviewer-login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: reviewerEmail, password: reviewerPassword }),
+    })
+
+    setReviewerLoading(false)
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null
+      setReviewerError(payload?.error ?? 'Connexion impossible')
+      return
+    }
+
+    window.location.href = withBasePath('/calendar')
   }
 
   if (sent) {
@@ -98,6 +125,44 @@ export default function LoginPage() {
         >
           Continuer avec Google
         </Button>
+
+        <div className="border-border space-y-3 border-t pt-5">
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            onClick={() => setShowReviewerForm((value) => !value)}
+          >
+            Accès reviewer TikTok
+          </Button>
+
+          {showReviewerForm ? (
+            <form onSubmit={handleReviewerLogin} className="space-y-3">
+              <Input
+                type="email"
+                placeholder="Email reviewer"
+                value={reviewerEmail}
+                onChange={(e) => setReviewerEmail(e.target.value)}
+                required
+                autoComplete="username"
+              />
+              <Input
+                type="password"
+                placeholder="Mot de passe"
+                value={reviewerPassword}
+                onChange={(e) => setReviewerPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+              {reviewerError ? (
+                <p className="text-destructive text-center text-sm">{reviewerError}</p>
+              ) : null}
+              <Button type="submit" className="w-full" disabled={reviewerLoading}>
+                {reviewerLoading ? 'Connexion...' : 'Se connecter'}
+              </Button>
+            </form>
+          ) : null}
+        </div>
 
         <LegalLinks />
       </div>
