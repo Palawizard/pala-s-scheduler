@@ -1,5 +1,9 @@
 # Pala's Scheduler
 
+<p align="center">
+  <img src="src/app/icon.svg" alt="Pala's Scheduler icon" width="128">
+</p>
+
 Personal scheduling, publishing, and analytics app for YouTube, Instagram, TikTok, and X.
 
 ## Requirements
